@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vendor POS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-100">
+    <div class="min-h-screen flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl p-8 max-w-md w-full">
+            <div class="text-center mb-6">
+                <div
+                    class="w-16 h-16 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <span class="text-white text-2xl">🏪</span>
+                </div>
+                <h1 class="text-2xl font-bold">Vendor POS</h1>
+            </div>
+
+            <div id="loginSection">
+                <input type="email" id="vendorEmail" placeholder="Vendor Email"
+                    class="w-full p-3 border rounded-xl mb-3">
+                <input type="password" id="vendorPassword" placeholder="Password"
+                    class="w-full p-3 border rounded-xl mb-4">
+                <button onclick="vendorLogin()"
+                    class="w-full bg-indigo-600 text-white py-3 rounded-xl font-bold">Login</button>
+                <div class="mt-4 text-center text-sm text-gray-500">
+                    <p>Demo: vendor@school.com / vendor123</p>
+                </div>
+            </div>
+
+            <div id="posSection" style="display:none">
+                <div class="mb-4">
+                    <label class="block text-sm font-semibold mb-2">Student ID</label>
+                    <input type="text" id="studentId" class="w-full p-3 border rounded-xl">
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-semibold mb-2">Amount (KES)</label>
+                    <input type="number" id="amount" step="0.01" class="w-full p-3 border rounded-xl">
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-semibold mb-2">Description</label>
+                    <input type="text" id="description" class="w-full p-3 border rounded-xl" placeholder="e.g., Lunch">
+                </div>
+                <button onclick="processPayment()"
+                    class="w-full bg-green-600 text-white py-3 rounded-xl font-bold">Process Payment</button>
+                <button onclick="logout()" class="w-full mt-3 text-red-600 py-2">Logout</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:3000/api';
+        let currentToken = null;
+
+        function vendorLogin() {
+            const email = document.getElementById('vendorEmail').value;
+            const password = document.getElementById('vendorPassword').value;
+
+            if (!email || !password) {
+                alert('Please enter email and password');
+                return;
+            }
+
+            fetch(API_URL + '/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: email, password: password })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.token && data.user.role === 'vendor') {
+                        currentToken = data.token;
+                        document.getElementById('loginSection').style.display = 'none';
+                        document.getElementById('posSection').style.display = 'block';
+                        alert('Login successful!');
+                    } else {
+                        alert('Login failed: ' + (data.error || 'Not a vendor account'));
+                    }
+                })
+                .catch(error => {
+                    alert('Cannot connect to server. Make sure backend is running on port 3000');
+                });
+        }
+
+        function processPayment() {
+            const studentId = document.getElementById('studentId').value;
+            const amount = parseFloat(document.getElementById('amount').value);
+            const description = document.getElementById('description').value || 'Store purchase';
+
+            if (!studentId || !amount) {
+                alert('Enter student ID and amount');
+                return;
+            }
+
+            fetch(API_URL + '/pos/payment', {
+                method: 'POST',
+                headers: {
+                    'Authorization': 'Bearer ' + currentToken,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ studentId: studentId, amount: amount, description: description, vendorId: 'pos' })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.message) {
+                        alert('✅ Payment successful!');
+                        document.getElementById('studentId').value = '';
+                        document.getElementById('amount').value = '';
+                        document.getElementById('description').value = '';
+                    } else {
+                        alert('Payment failed: ' + (data.error || 'Unknown error'));
+                    }
+                })
+                .catch(error => {
+                    alert('Error processing payment');
+                });
+        }
+
+        function logout() {
+            currentToken = null;
+            document.getElementById('loginSection').style.display = 'block';
+            document.getElementById('posSection').style.display = 'none';
+            document.getElementById('vendorEmail').value = '';
+            document.getElementById('vendorPassword').value = '';
+        }
+    </script>
+</body>
+
+</html>

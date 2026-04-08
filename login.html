@@ -6,11 +6,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Pulse - Login</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="config.js"></script>
-    <script>
-        // Now you can use API_URL
-        fetch(`${API_URL}/auth/login`, );
-    </script>
 </head>
 
 <body class="bg-gradient-to-r from-indigo-500 to-purple-600 min-h-screen flex items-center justify-center p-4">
@@ -20,19 +15,19 @@
                 class="w-20 h-20 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
                 <span class="text-white text-3xl font-bold">P</span>
             </div>
-            <h1 class="text-2xl font-bold">Welcome to Pulse</h1>
+            <h1 class="text-2xl font-bold">Pulse Login</h1>
             <p class="text-gray-500 text-sm">Digital Campus Wallet</p>
         </div>
 
         <div class="mb-4">
-            <input type="email" id="loginEmail" placeholder="Email Address" class="w-full p-3 border rounded-xl">
+            <input type="email" id="email" placeholder="Email Address" class="w-full p-3 border rounded-xl">
         </div>
 
         <div class="mb-6">
-            <input type="password" id="loginPassword" placeholder="Password" class="w-full p-3 border rounded-xl">
+            <input type="password" id="password" placeholder="Password" class="w-full p-3 border rounded-xl">
         </div>
 
-        <button onclick="login()" class="w-full bg-indigo-600 text-white py-3 rounded-xl font-semibold">
+        <button onclick="login()" class="w-full bg-indigo-600 text-white py-3 rounded-xl font-bold">
             Login
         </button>
 
@@ -42,16 +37,20 @@
     </div>
 
     <script>
-        const API_URL = 'https://pulse-api-e30b.onrender.com/api';
+        // USE LOCALHOST FOR LOCAL TESTING
+        const API_URL = 'http://localhost:3000/api';
 
         async function login() {
-            const email = document.getElementById('loginEmail').value;
-            const password = document.getElementById('loginPassword').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
 
             if (!email || !password) {
                 alert('Please enter email and password');
                 return;
             }
+
+            console.log('Logging in with:', email);
+            console.log('API URL:', API_URL);
 
             try {
                 const response = await fetch(`${API_URL}/auth/login`, {
@@ -60,7 +59,9 @@
                     body: JSON.stringify({ email, password })
                 });
 
+                console.log('Response status:', response.status);
                 const data = await response.json();
+                console.log('Response data:', data);
 
                 if (response.ok) {
                     localStorage.setItem('token', data.token);
@@ -69,16 +70,23 @@
 
                     if (data.user.role === 'admin') {
                         window.location.href = 'admin/index.html';
+                    } else if (data.user.role === 'vendor') {
+                        window.location.href = 'pos/index.html';
                     } else {
                         window.location.href = 'index.html';
                     }
                 } else {
-                    alert('Login failed: ' + (data.error || 'Invalid credentials'));
+                    alert('Login failed: ' + (data.error || 'Wrong email or password'));
                 }
             } catch (error) {
-                alert('Network error. Backend waking up? Try again.');
+                console.error('Fetch error:', error);
+                alert('Cannot connect to server. Make sure backend is running on port 3000');
             }
         }
+
+        document.getElementById('password').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') login();
+        });
     </script>
 </body>
 
