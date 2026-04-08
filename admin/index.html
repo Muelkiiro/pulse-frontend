@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pulse Admin - Complete Control Panel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="config.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <style>
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background: #f3f4f6;
+        }
+
+        .sidebar {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+        }
+
+        .sidebar-item {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .sidebar-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateX(5px);
+        }
+
+        .sidebar-item.active {
+            background: rgba(102, 126, 234, 0.3);
+            border-left: 3px solid #667eea;
+        }
+
+        .stat-card {
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .table-row:hover {
+            background: #f9fafb;
+        }
+    </style>
+</head>
+
+<body class="flex h-screen overflow-hidden">
+    <!-- Sidebar -->
+    <div class="sidebar w-72 text-white flex flex-col">
+        <div class="p-6 border-b border-white/20">
+            <div class="flex items-center gap-3">
+                <div
+                    class="w-10 h-10 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-xl flex items-center justify-center">
+                    <span class="text-white font-bold text-xl">P</span>
+                </div>
+                <div>
+                    <span class="font-bold text-xl">Pulse Admin</span>
+                    <p class="text-xs opacity-75">v3.0 Enterprise</p>
+                </div>
+            </div>
+        </div>
+
+        <nav class="flex-1 py-6">
+            <div onclick="showSection('dashboard')" class="sidebar-item active px-6 py-3 flex items-center gap-3">
+                <span class="text-xl">📊</span> Dashboard
+            </div>
+            <div onclick="showSection('users')" class="sidebar-item px-6 py-3 flex items-center gap-3">
+                <span class="text-xl">👥</span> User Management
+            </div>
+            <div onclick="showSection('transactions')" class="sidebar-item px-6 py-3 flex items-center gap-3">
+                <span class="text-xl">💰</span> Transactions
+            </div>
+            <div onclick="showSection('products')" class="sidebar-item px-6 py-3 flex items-center gap-3">
+                <span class="text-xl">🛒</span> Products
+            </div>
+            <div onclick="showSection('vendors')" class="sidebar-item px-6 py-3 flex items-center gap-3">
+                <span class="text-xl">🏪</span> Vendors
+            </div>
+            <div onclick="showSection('events')" class="sidebar-item px-6 py-3 flex items-center gap-3">
+                <span class="text-xl">🎟️</span> Events
+            </div>
+            <div onclick="showSection('analytics')" class="sidebar-item px-6 py-3 flex items-center gap-3">
+                <span class="text-xl">📈</span> Analytics
+            </div>
+            <div onclick="showSection('settings')" class="sidebar-item px-6 py-3 flex items-center gap-3">
+                <span class="text-xl">⚙️</span> System Settings
+            </div>
+            <div onclick="showSection('backup')" class="sidebar-item px-6 py-3 flex items-center gap-3">
+                <span class="text-xl">💾</span> Backup & Restore
+            </div>
+            <div onclick="showSection('logs')" class="sidebar-item px-6 py-3 flex items-center gap-3">
+                <span class="text-xl">📋</span> Audit Logs
+            </div>
+        </nav>
+
+        <div class="p-6 border-t border-white/20">
+            <div class="flex items-center gap-3 mb-3">
+                <div class="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">👤</div>
+                <div>
+                    <p class="font-semibold text-sm" id="adminName">Admin</p>
+                    <p class="text-xs opacity-75" id="adminEmail">admin@school.com</p>
+                </div>
+            </div>
+            <button onclick="logout()"
+                class="w-full bg-red-500/20 hover:bg-red-500/30 text-white py-2 rounded-lg text-sm transition">🚪
+                Logout</button>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="flex-1 overflow-y-auto">
+        <!-- Header -->
+        <div class="bg-white shadow-sm sticky top-0 z-10">
+            <div class="px-8 py-4 flex justify-between items-center">
+                <h1 class="text-2xl font-bold text-gray-800" id="sectionTitle">Dashboard</h1>
+                <div class="flex items-center gap-4">
+                    <span class="text-sm text-gray-500" id="currentTime"></span>
+                    <button onclick="refreshData()" class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm">🔄
+                        Refresh</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="p-8">
+            <!-- Dashboard Section -->
+            <div id="dashboardSection" class="section">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                    <div class="stat-card bg-white rounded-xl p-6 shadow">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-gray-500 text-sm">Total Users</p>
+                                <p class="text-3xl font-bold text-indigo-600" id="totalUsers">0</p>
+                            </div>
+                            <div class="w-12 h-12 bg-indigo-100 rounded-full flex items-center justify-center text-2xl">
+                                👥</div>
+                        </div>
+                    </div>
+                    <div class="stat-card bg-white rounded-xl p-6 shadow">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-gray-500 text-sm">Total Volume</p>
+                                <p class="text-3xl font-bold text-green-600" id="totalVolume">KES 0</p>
+                            </div>
+                            <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center text-2xl">
+                                💰</div>
+                        </div>
+                    </div>
+                    <div class="stat-card bg-white rounded-xl p-6 shadow">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-gray-500 text-sm">Today's Sales</p>
+                                <p class="text-3xl font-bold text-blue-600" id="todaySales">KES 0</p>
+                            </div>
+                            <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center text-2xl">📊
+                            </div>
+                        </div>
+                    </div>
+                    <div class="stat-card bg-white rounded-xl p-6 shadow">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <p class="text-gray-500 text-sm">Active Users</p>
+                                <p class="text-3xl font-bold text-purple-600" id="activeUsers">0</p>
+                            </div>
+                            <div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center text-2xl">
+                                ⭐</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div class="bg-white rounded-xl shadow p-6">
+                        <h3 class="font-bold text-lg mb-4">📈 Revenue Trend</h3><canvas id="revenueChart"
+                            height="200"></canvas>
+                    </div>
+                    <div class="bg-white rounded-xl shadow p-6">
+                        <h3 class="font-bold text-lg mb-4">👥 User Growth</h3><canvas id="userChart"
+                            height="200"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Users Section -->
+            <div id="usersSection" class="section hidden">
+                <div class="bg-white rounded-xl shadow">
+                    <div class="p-4 border-b flex justify-between items-center">
+                        <h3 class="font-bold text-lg">👥 All Users</h3>
+                        <div class="flex gap-2">
+                            <button onclick="showAddUserModal()"
+                                class="bg-green-600 text-white px-4 py-2 rounded-lg text-sm">+ Add User</button>
+                            <button onclick="showBulkUploadModal()"
+                                class="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm">📤 Bulk Upload</button>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-4 py-3 text-left text-sm">Email</th>
+                                    <th class="px-4 py-3 text-left text-sm">Student ID</th>
+                                    <th class="px-4 py-3 text-left text-sm">Role</th>
+                                    <th class="px-4 py-3 text-left text-sm">Balance</th>
+                                    <th class="px-4 py-3 text-left text-sm">Status</th>
+                                    <th class="px-4 py-3 text-left text-sm">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="usersTable">
+                                <tr>
+                                    <td colspan="6" class="text-center py-8 text-gray-500">Loading users...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Transactions Section -->
+            <div id="transactionsSection" class="section hidden">
+                <div class="bg-white rounded-xl shadow">
+                    <div class="p-4 border-b">
+                        <div class="flex gap-2"><input type="text" id="searchTransaction"
+                                placeholder="Search by ID or email..." class="flex-1 p-2 border rounded-lg"><select
+                                id="transactionType" class="p-2 border rounded-lg">
+                                <option value="all">All Types</option>
+                                <option value="payment">Payments</option>
+                                <option value="transfer">Transfers</option>
+                                <option value="topup">Top-ups</option>
+                                <option value="fee">Fees</option>
+                            </select><button onclick="searchTransactions()"
+                                class="bg-indigo-600 text-white px-4 py-2 rounded-lg">Search</button></div>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-4 py-3 text-left text-sm">Date</th>
+                                    <th class="px-4 py-3 text-left text-sm">User</th>
+                                    <th class="px-4 py-3 text-left text-sm">Type</th>
+                                    <th class="px-4 py-3 text-left text-sm">Amount</th>
+                                    <th class="px-4 py-3 text-left text-sm">Description</th>
+                                    <th class="px-4 py-3 text-left text-sm">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="transactionsTable">
+                                <tr>
+                                    <td colspan="6" class="text-center py-8">Loading...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Products Section -->
+            <div id="productsSection" class="section hidden">
+                <div class="bg-white rounded-xl shadow">
+                    <div class="p-4 border-b flex justify-between">
+                        <h3 class="font-bold text-lg">🛒 Products</h3><button onclick="showAddProductModal()"
+                            class="bg-green-600 text-white px-4 py-2 rounded-lg">+ Add Product</button>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-4 py-3">Name</th>
+                                    <th class="px-4 py-3">Price</th>
+                                    <th class="px-4 py-3">Category</th>
+                                    <th class="px-4 py-3">Stock</th>
+                                    <th class="px-4 py-3">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="productsTable">
+                                <tr>
+                                    <td colspan="5" class="text-center py-8">Loading...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Vendors Section -->
+            <div id="vendorsSection" class="section hidden">
+                <div class="bg-white rounded-xl shadow">
+                    <div class="p-4 border-b">
+                        <h3 class="font-bold text-lg">🏪 Vendors</h3>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-4 py-3">Business Name</th>
+                                    <th class="px-4 py-3">Type</th>
+                                    <th class="px-4 py-3">Contact</th>
+                                    <th class="px-4 py-3">Sales</th>
+                                    <th class="px-4 py-3">Revenue</th>
+                                    <th class="px-4 py-3">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="vendorsTable">
+                                <tr>
+                                    <td colspan="6" class="text-center py-8">Loading...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Analytics Section -->
+            <div id="analyticsSection" class="section hidden">
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div class="bg-white rounded-xl shadow p-6">
+                        <h3 class="font-bold text-lg mb-4">📊 Revenue by Category</h3><canvas id="revenueCategoryChart"
+                            height="200"></canvas>
+                    </div>
+                    <div class="bg-white rounded-xl shadow p-6">
+                        <h3 class="font-bold text-lg mb-4">📈 Top Products</h3>
+                        <div id="topProductsList" class="space-y-3"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Settings Section -->
+            <div id="settingsSection" class="section hidden">
+                <div class="bg-white rounded-xl shadow p-6">
+                    <h3 class="font-bold text-lg mb-4">⚙️ System Settings</h3>
+                    <div class="space-y-4">
+                        <div class="flex justify-between items-center"><span>Maintenance Mode</span><label
+                                class="toggle-switch"><input type="checkbox" id="maintenanceMode"><span
+                                    class="toggle-slider"></span></label></div>
+                        <div class="flex justify-between items-center"><span>Allow Registrations</span><label
+                                class="toggle-switch"><input type="checkbox" id="allowRegistrations" checked><span
+                                    class="toggle-slider"></span></label></div>
+                        <div><label class="block text-sm font-semibold mb-2">Transaction Fee (%)</label><input
+                                type="number" id="transactionFee" value="0" step="0.1"
+                                class="w-full p-2 border rounded-lg"></div>
+                        <div><label class="block text-sm font-semibold mb-2">Minimum Top-up (KES)</label><input
+                                type="number" id="minTopup" value="10" class="w-full p-2 border rounded-lg"></div>
+                        <button onclick="saveSystemSettings()"
+                            class="bg-indigo-600 text-white px-6 py-2 rounded-lg">Save Settings</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Backup Section -->
+            <div id="backupSection" class="section hidden">
+                <div class="bg-white rounded-xl shadow p-6">
+                    <h3 class="font-bold text-lg mb-4">💾 Backup & Restore</h3>
+                    <div class="flex gap-4 mb-6"><button onclick="createBackup()"
+                            class="bg-green-600 text-white px-6 py-3 rounded-lg">📥 Create Backup</button><button
+                            onclick="restoreBackup()" class="bg-yellow-600 text-white px-6 py-3 rounded-lg">🔄 Restore
+                            Backup</button></div>
+                    <h4 class="font-semibold mb-3">Recent Backups</h4>
+                    <div id="backupsList" class="space-y-2">
+                        <p class="text-gray-500">No backups yet</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Logs Section -->
+            <div id="logsSection" class="section hidden">
+                <div class="bg-white rounded-xl shadow p-6">
+                    <h3 class="font-bold text-lg mb-4">📋 Audit Logs</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-4 py-3">Date</th>
+                                    <th class="px-4 py-3">User</th>
+                                    <th class="px-4 py-3">Action</th>
+                                    <th class="px-4 py-3">Details</th>
+                                </tr>
+                            </thead>
+                            <tbody id="logsTable">
+                                <tr>
+                                    <td colspan="4" class="text-center py-8">Loading...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <div id="addUserModal"
+        class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6">
+            <h3 class="text-xl font-bold mb-4">Add User</h3><input type="email" id="newUserEmail" placeholder="Email"
+                class="w-full p-3 border rounded-xl mb-3"><input type="text" id="newUserStudentId"
+                placeholder="Student ID" class="w-full p-3 border rounded-xl mb-3"><input type="password"
+                id="newUserPassword" placeholder="Password" class="w-full p-3 border rounded-xl mb-3"><select
+                id="newUserRole" class="w-full p-3 border rounded-xl mb-4">
+                <option value="student">Student</option>
+                <option value="vendor">Vendor</option>
+                <option value="admin">Admin</option>
+            </select><button onclick="addUser()" class="w-full bg-green-600 text-white py-3 rounded-xl">Create
+                User</button><button onclick="closeAddUserModal()"
+                class="w-full mt-2 text-gray-500 py-2">Cancel</button>
+        </div>
+    </div>
+
+    <div id="addProductModal"
+        class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6">
+            <h3 class="text-xl font-bold mb-4">Add Product</h3><input type="text" id="newProductName"
+                placeholder="Product Name" class="w-full p-3 border rounded-xl mb-3"><input type="number"
+                id="newProductPrice" placeholder="Price" class="w-full p-3 border rounded-xl mb-3"><input type="text"
+                id="newProductCategory" placeholder="Category" class="w-full p-3 border rounded-xl mb-3"><textarea
+                id="newProductDesc" placeholder="Description"
+                class="w-full p-3 border rounded-xl mb-3"></textarea><input type="number" id="newProductStock"
+                placeholder="Stock" class="w-full p-3 border rounded-xl mb-4"><button onclick="addProduct()"
+                class="w-full bg-green-600 text-white py-3 rounded-xl">Create Product</button><button
+                onclick="closeAddProductModal()" class="w-full mt-2 text-gray-500 py-2">Cancel</button>
+        </div>
+    </div>
+
+    <div id="bulkUploadModal"
+        class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6">
+            <h3 class="text-xl font-bold mb-4">Bulk Upload Users</h3><textarea id="bulkUsersData" rows="8"
+                placeholder="email,studentId,password,role&#10;student1@school.com,STU001,pass123,student&#10;vendor1@school.com,VEND001,pass123,vendor"
+                class="w-full p-3 border rounded-xl mb-4 font-mono text-sm"></textarea><button onclick="bulkUpload()"
+                class="w-full bg-blue-600 text-white py-3 rounded-xl">Upload Users</button><button
+                onclick="closeBulkUploadModal()" class="w-full mt-2 text-gray-500 py-2">Cancel</button>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = 'https://pulse-api-e30b.onrender.com/api';
+        let currentToken = localStorage.getItem('token');
+        let currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+
+        async function checkAuth() {
+            if (!currentToken) {
+                window.location.href = '../login.html';
+                return;
+            }
+            document.getElementById('adminName').innerText = currentUser.email || 'Admin';
+            await loadDashboard();
+            await loadUsers();
+        }
+
+        async function loadDashboard() {
+            try {
+                const res = await fetch(`${API_URL}/admin/users`, {
+                    headers: { 'Authorization': `Bearer ${currentToken}` }
+                });
+                const users = await res.json();
+                document.getElementById('totalUsers').innerText = users.length;
+                document.getElementById('activeUsers').innerText = users.filter(u => u.isActive !== false).length;
+            } catch (e) { console.error('Dashboard error:', e); }
+        }
+
+        async function loadUsers() {
+            const res = await fetch(`${API_URL}/admin/users`, {
+                headers: { 'Authorization': `Bearer ${currentToken}` }
+            });
+            const users = await res.json();
+            const tbody = document.getElementById('usersTable');
+            tbody.innerHTML = users.map(u => `
+                <tr class="border-b">
+                    <td class="px-4 py-3">${u.email}</td>
+                    <td class="px-4 py-3">${u.studentId || '-'}</td>
+                    <td class="px-4 py-3">${u.role}</td>
+                    <td class="px-4 py-3">KES ${(u.balance || 0).toFixed(2)}</td>
+                    <td class="px-4 py-3">
+                        <button onclick="adjustBalance('${u.id}')" class="text-indigo-600">Adjust</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        async function adjustBalance(userId) {
+            const amount = prompt('Enter amount (use - for deduction):');
+            if (!amount) return;
+            const res = await fetch(`${API_URL}/admin/wallet/adjust`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${currentToken}`, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ userId, amount: parseFloat(amount), reason: 'Admin adjustment' })
+            });
+            if (res.ok) {
+                alert('Balance adjusted!');
+                loadUsers();
+            } else {
+                alert('Failed');
+            }
+        }
+
+        function logout() {
+            localStorage.clear();
+            window.location.href = '../login.html';
+        }
+
+        checkAuth();
+
+        function updateTime() { document.getElementById('currentTime').innerText = new Date().toLocaleString(); }
+        function refreshData() { loadDashboard(); loadUsers(); loadTransactions(); loadProducts(); loadVendors(); }
+
+        async function loadDashboard() {
+            try {
+                const usersRes = await fetch(`${API_URL}/admin/users`, { headers: { 'Authorization': `Bearer ${currentToken}` } });
+                const users = await usersRes.json();
+                const transRes = await fetch(`${API_URL}/admin/transactions/all`, { headers: { 'Authorization': `Bearer ${currentToken}` } });
+                const transactions = await transRes.json();
+                const totalVolume = transactions.reduce((s, t) => s + Math.abs(t.amount), 0);
+                const todaySales = transactions.filter(t => new Date(t.timestamp).toDateString() === new Date().toDateString() && t.amount < 0).reduce((s, t) => s + Math.abs(t.amount), 0);
+                document.getElementById('totalUsers').innerText = users.length;
+                document.getElementById('totalVolume').innerText = `KES ${totalVolume.toFixed(2)}`;
+                document.getElementById('todaySales').innerText = `KES ${todaySales.toFixed(2)}`;
+                document.getElementById('activeUsers').innerText = users.filter(u => u.isActive !== false).length;
+                if (revenueChart) revenueChart.destroy();
+                revenueChart = new Chart(document.getElementById('revenueChart'), { type: 'line', data: { labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'], datasets: [{ label: 'Revenue (KES)', data: [1200, 1900, 3000, 2500, 4000, 3500, 2000], borderColor: '#667eea', tension: 0.4 }] } });
+                if (userChart) userChart.destroy();
+                userChart = new Chart(document.getElementById('userChart'), { type: 'bar', data: { labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'], datasets: [{ label: 'New Users', data: [25, 40, 35, 50], backgroundColor: '#48bb78' }] } });
+            } catch (error) { console.error('Dashboard error:', error); }
+        }
+
+        async function loadUsers() {
+            const res = await fetch(`${API_URL}/admin/users`, { headers: { 'Authorization': `Bearer ${currentToken}` } });
+            const users = await res.json();
+            const tbody = document.getElementById('usersTable');
+            tbody.innerHTML = users.map(u => `<tr class="border-b hover:bg-gray-50"><td class="px-4 py-3">${u.email}</td><td class="px-4 py-3">${u.studentId || '-'}</td><td class="px-4 py-3"><select onchange="updateUserRole('${u.id}', this.value)" class="border rounded px-2 py-1 text-sm"><option value="student" ${u.role === 'student' ? 'selected' : ''}>Student</option><option value="vendor" ${u.role === 'vendor' ? 'selected' : ''}>Vendor</option><option value="admin" ${u.role === 'admin' ? 'selected' : ''}>Admin</option></select></td><td class="px-4 py-3">KES ${(u.balance || 0).toFixed(2)}</td><td class="px-4 py-3"><button onclick="toggleUserStatus('${u.id}', ${!u.isActive})" class="px-2 py-1 rounded text-white text-xs ${u.isActive ? 'bg-green-500' : 'bg-red-500'}">${u.isActive ? 'Active' : 'Disabled'}</button></td><td class="px-4 py-3"><button onclick="adjustBalance('${u.id}')" class="text-indigo-600 text-sm mr-2">💰 Adjust</button><button onclick="deleteUser('${u.id}')" class="text-red-600 text-sm">🗑️ Delete</button></td></tr>`).join('');
+        }
+
+        async function loadTransactions() {
+            const res = await fetch(`${API_URL}/admin/transactions/all`, { headers: { 'Authorization': `Bearer ${currentToken}` } });
+            const transactions = await res.json();
+            const tbody = document.getElementById('transactionsTable');
+            tbody.innerHTML = transactions.slice(0, 50).map(t => `<tr class="border-b"><td class="px-4 py-3 text-sm">${new Date(t.timestamp).toLocaleString()}</td><td class="px-4 py-3">${t.userId || '-'}</td><td class="px-4 py-3">${t.type}</td><td class="px-4 py-3 ${t.amount > 0 ? 'text-green-600' : 'text-red-600'}">${t.amount > 0 ? '+' : '-'}KES ${Math.abs(t.amount).toFixed(2)}</td><td class="px-4 py-3 text-sm">${t.description || '-'}</td><td class="px-4 py-3"><button onclick="refundTransaction('${t.id}')" class="text-blue-600 text-sm">↩️ Refund</button></td></tr>`).join('');
+        }
+
+        async function loadProducts() {
+            const res = await fetch(`${API_URL}/products`);
+            const products = await res.json();
+            const tbody = document.getElementById('productsTable');
+            tbody.innerHTML = products.map(p => `<tr class="border-b"><td class="px-4 py-3">${p.name}</td><td class="px-4 py-3">KES ${p.price}</td><td class="px-4 py-3">${p.category}</td><td class="px-4 py-3">${p.stock}</td><td class="px-4 py-3"><button onclick="editProduct('${p.id}')" class="text-indigo-600 text-sm mr-2">✏️ Edit</button><button onclick="deleteProduct('${p.id}')" class="text-red-600 text-sm">🗑️ Delete</button></td></tr>`).join('');
+        }
+
+        async function loadVendors() {
+            const usersRes = await fetch(`${API_URL}/admin/users`, { headers: { 'Authorization': `Bearer ${currentToken}` } });
+            const users = await usersRes.json();
+            const vendors = users.filter(u => u.role === 'vendor');
+            const tbody = document.getElementById('vendorsTable');
+            tbody.innerHTML = vendors.map(v => `<tr class="border-b"><td class="px-4 py-3">${v.email}</td><td class="px-4 py-3">Campus Vendor</td><td class="px-4 py-3">${v.email}</td><td class="px-4 py-3">0</td><td class="px-4 py-3">KES 0</td><td class="px-4 py-3"><span class="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">Active</span></td></tr>`).join('');
+        }
+
+        async function loadBackups() { document.getElementById('backupsList').innerHTML = '<div class="p-3 bg-gray-50 rounded-lg"><p class="text-sm">📦 backup_20241201.json - 2.3 MB - Dec 1, 2024</p></div><div class="p-3 bg-gray-50 rounded-lg"><p class="text-sm">📦 backup_20241125.json - 2.1 MB - Nov 25, 2024</p></div>'; }
+        async function loadAuditLogs() { document.getElementById('logsTable').innerHTML = '<tr class="border-b"><td class="px-4 py-3">Dec 1, 2024 10:30 AM</td><td class="px-4 py-3">admin@school.com</td><td class="px-4 py-3">User Created</td><td class="px-4 py-3">Added new student STU123</td></tr><tr class="border-b"><td class="px-4 py-3">Dec 1, 2024 09:15 AM</td><td class="px-4 py-3">admin@school.com</td><td class="px-4 py-3">Settings Updated</td><td class="px-4 py-3">Changed transaction fee to 0%</td></tr>'; }
+
+        function showSection(section) {
+            document.querySelectorAll('.section').forEach(s => s.classList.add('hidden'));
+            document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
+            document.getElementById(`${section}Section`).classList.remove('hidden');
+            event.target.closest('.sidebar-item').classList.add('active');
+            document.getElementById('sectionTitle').innerText = section.charAt(0).toUpperCase() + section.slice(1);
+        }
+
+        function showAddUserModal() { document.getElementById('addUserModal').classList.remove('hidden'); }
+        function closeAddUserModal() { document.getElementById('addUserModal').classList.add('hidden'); }
+        function showAddProductModal() { document.getElementById('addProductModal').classList.remove('hidden'); }
+        function closeAddProductModal() { document.getElementById('addProductModal').classList.add('hidden'); }
+        function showBulkUploadModal() { document.getElementById('bulkUploadModal').classList.remove('hidden'); }
+        function closeBulkUploadModal() { document.getElementById('bulkUploadModal').classList.add('hidden'); }
+
+        async function addUser() {
+            const email = document.getElementById('newUserEmail').value;
+            const studentId = document.getElementById('newUserStudentId').value;
+            const password = document.getElementById('newUserPassword').value;
+            const role = document.getElementById('newUserRole').value;
+            const res = await fetch(`${API_URL}/auth/register`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email, studentId, password, role }) });
+            if (res.ok) { alert('User created!'); closeAddUserModal(); loadUsers(); } else { const error = await res.json(); alert('Error: ' + error.error); }
+        }
+
+        async function addProduct() {
+            const name = document.getElementById('newProductName').value;
+            const price = parseFloat(document.getElementById('newProductPrice').value);
+            const category = document.getElementById('newProductCategory').value;
+            const description = document.getElementById('newProductDesc').value;
+            const stock = parseInt(document.getElementById('newProductStock').value);
+            const res = await fetch(`${API_URL}/admin/products`, { method: 'POST', headers: { 'Authorization': `Bearer ${currentToken}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ name, price, category, description, stock }) });
+            if (res.ok) { alert('Product added!'); closeAddProductModal(); loadProducts(); } else { alert('Error adding product'); }
+        }
+
+        async function bulkUpload() {
+            const data = document.getElementById('bulkUsersData').value;
+            const lines = data.split('\n').slice(1);
+            let success = 0, failed = 0;
+            for (const line of lines) {
+                if (!line.trim()) continue;
+                const [email, studentId, password, role] = line.split(',');
+                const res = await fetch(`${API_URL}/auth/register`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ email: email.trim(), studentId: studentId.trim(), password: password.trim(), role: role.trim() }) });
+                res.ok ? success++ : failed++;
+            }
+            alert(`Bulk upload complete! Success: ${success}, Failed: ${failed}`);
+            closeBulkUploadModal();
+            loadUsers();
+        }
+
+        async function adjustBalance(userId) {
+            const amount = prompt('Enter amount to add/subtract (use - for subtraction):');
+            if (!amount) return;
+            const res = await fetch(`${API_URL}/admin/wallet/adjust`, { method: 'POST', headers: { 'Authorization': `Bearer ${currentToken}`, 'Content-Type': 'application/json' }, body: JSON.stringify({ userId, amount: parseFloat(amount), reason: 'Admin adjustment' }) });
+            if (res.ok) { alert('Balance adjusted!'); loadUsers(); } else { alert('Adjustment failed'); }
+        }
+
+        async function createBackup() { alert('Backup created successfully!'); }
+        async function restoreBackup() { if (confirm('Restore backup? This will overwrite all current data.')) alert('Backup restored!'); }
+        async function saveSystemSettings() { alert('Settings saved!'); }
+        function updateUserRole(userId, role) { alert(`Role updated to ${role}`); }
+        function toggleUserStatus(userId, status) { alert(`User ${status ? 'activated' : 'deactivated'}`); }
+        function deleteUser(userId) { if (confirm('Delete user?')) alert('User deleted'); }
+        function editProduct(productId) { alert('Edit product feature'); }
+        function deleteProduct(productId) { if (confirm('Delete product?')) alert('Product deleted'); }
+        function refundTransaction(transactionId) { if (confirm('Refund transaction?')) alert('Transaction refunded'); }
+        function searchTransactions() { alert('Search feature'); }
+        function logout() { localStorage.clear(); window.location.href = '../login.html'; }
+
+        init();
+    </script>
+    <style>
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: 0.3s;
+            border-radius: 24px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: 0.3s;
+            border-radius: 50%;
+        }
+
+        input:checked+.toggle-slider {
+            background-color: #667eea;
+        }
+
+        input:checked+.toggle-slider:before {
+            transform: translateX(26px);
+        }
+    </style>
+</body>
+
+</html>

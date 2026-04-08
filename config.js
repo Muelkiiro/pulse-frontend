@@ -1,0 +1,1 @@
+const API_URL = 'https://pulse-api-e30b.onrender.com/api';

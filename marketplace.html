@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <script src="config.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Pulse - Campus Marketplace</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <style>
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            transition: background-color 0.3s ease;
+        }
+
+        body.dark-mode {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #f0f0f0;
+        }
+
+        body.dark-mode .bg-white {
+            background: #1e1e2e !important;
+            color: #e0e0e0;
+        }
+
+        body.dark-mode .text-gray-600,
+        body.dark-mode .text-gray-500 {
+            color: #a0a0a0 !important;
+        }
+
+        body.dark-mode .border {
+            border-color: #333 !important;
+        }
+
+        /* Category Tabs */
+        .category-tab {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .category-tab.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 10px 20px -5px rgba(102, 126, 234, 0.4);
+        }
+
+        .category-tab.active .category-icon {
+            filter: brightness(0) invert(1);
+        }
+
+        /* Product Card */
+        .product-card {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+        }
+
+        .product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Cart Sidebar */
+        .cart-sidebar {
+            position: fixed;
+            right: -400px;
+            top: 0;
+            width: 400px;
+            height: 100vh;
+            background: white;
+            box-shadow: -5px 0 20px rgba(0, 0, 0, 0.1);
+            transition: right 0.3s ease;
+            z-index: 1000;
+            overflow-y: auto;
+        }
+
+        body.dark-mode .cart-sidebar {
+            background: #1e1e2e;
+        }
+
+        .cart-sidebar.open {
+            right: 0;
+        }
+
+        .cart-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 999;
+            display: none;
+        }
+
+        .cart-overlay.open {
+            display: block;
+        }
+
+        /* Quantity Selector */
+        .quantity-btn {
+            transition: all 0.2s ease;
+        }
+
+        .quantity-btn:active {
+            transform: scale(0.9);
+        }
+
+        /* Loading Animation */
+        .loader {
+            width: 48px;
+            height: 48px;
+            border: 3px solid #667eea;
+            border-bottom-color: transparent;
+            border-radius: 50%;
+            animation: rotation 1s linear infinite;
+        }
+
+        @keyframes rotation {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #48bb78;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 50px;
+            z-index: 1001;
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+    </style>
+</head>
+
+<body class="bg-gray-100">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-lg sticky top-0 z-50 transition-all duration-300">
+        <div class="container mx-auto px-4 py-3">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center gap-3">
+                    <div
+                        class="w-10 h-10 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-xl flex items-center justify-center">
+                        <span class="text-white font-bold text-xl">P</span>
+                    </div>
+                    <div>
+                        <span
+                            class="font-bold text-xl bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">Campus
+                            Market</span>
+                        <span class="text-sm text-gray-500 ml-1">by Pulse</span>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-4">
+                    <!-- Dark Mode Toggle -->
+                    <button onclick="toggleDarkMode()" class="text-2xl hover:scale-110 transition-transform">
+                        <span id="darkModeIcon">🌙</span>
+                    </button>
+
+                    <!-- Cart Button -->
+                    <button onclick="toggleCart()" class="relative">
+                        <span class="text-2xl">🛒</span>
+                        <span id="cartCount"
+                            class="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center hidden">0</span>
+                    </button>
+
+                    <!-- Balance -->
+                    <div class="bg-gradient-to-r from-green-500 to-green-600 text-white px-4 py-2 rounded-full">
+                        <span id="balance" class="font-bold">$0.00</span>
+                    </div>
+
+                    <button onclick="window.location.href='index.html'" class="text-gray-600 hover:text-gray-800">←
+                        Back</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mx-auto px-4 py-6 max-w-7xl">
+        <!-- Welcome Banner -->
+        <div class="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl p-6 mb-8 text-white">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h1 class="text-2xl font-bold mb-2">🍽️ Campus Marketplace</h1>
+                    <p class="opacity-90">Order food, supplies, and services from across campus</p>
+                </div>
+                <div class="text-right">
+                    <p class="text-sm opacity-75">Your Balance</p>
+                    <p class="text-2xl font-bold" id="balanceLarge">$0.00</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Category Tabs -->
+        <div class="flex overflow-x-auto gap-3 mb-8 pb-2">
+            <button onclick="filterCategory('all')"
+                class="category-tab active px-6 py-3 rounded-xl font-semibold bg-white shadow-md whitespace-nowrap"
+                data-category="all">
+                🏠 All
+            </button>
+            <button onclick="filterCategory('cafeteria')"
+                class="category-tab px-6 py-3 rounded-xl font-semibold bg-white shadow-md whitespace-nowrap"
+                data-category="cafeteria">
+                🍽️ Cafeteria
+            </button>
+            <button onclick="filterCategory('canteen')"
+                class="category-tab px-6 py-3 rounded-xl font-semibold bg-white shadow-md whitespace-nowrap"
+                data-category="canteen">
+                🥪 Canteen
+            </button>
+            <button onclick="filterCategory('minimart')"
+                class="category-tab px-6 py-3 rounded-xl font-semibold bg-white shadow-md whitespace-nowrap"
+                data-category="minimart">
+                🏪 Mini-Mart
+            </button>
+            <button onclick="filterCategory('services')"
+                class="category-tab px-6 py-3 rounded-xl font-semibold bg-white shadow-md whitespace-nowrap"
+                data-category="services">
+                🔧 Services
+            </button>
+            <button onclick="filterCategory('stationery')"
+                class="category-tab px-6 py-3 rounded-xl font-semibold bg-white shadow-md whitespace-nowrap"
+                data-category="stationery">
+                📚 Stationery
+            </button>
+        </div>
+
+        <!-- Products Grid -->
+        <div id="productsGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            <div class="col-span-full text-center py-12">
+                <div class="loader mx-auto"></div>
+                <p class="mt-3 text-gray-500">Loading delicious options...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cart Sidebar -->
+    <div class="cart-overlay" id="cartOverlay" onclick="toggleCart()"></div>
+    <div class="cart-sidebar" id="cartSidebar">
+        <div class="p-6">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold">Your Cart 🛒</h2>
+                <button onclick="toggleCart()" class="text-gray-500 text-2xl">&times;</button>
+            </div>
+
+            <div id="cartItems" class="space-y-4 mb-6">
+                <p class="text-gray-500 text-center">Your cart is empty</p>
+            </div>
+
+            <div class="border-t pt-4">
+                <div class="flex justify-between items-center mb-3">
+                    <span class="font-bold">Subtotal:</span>
+                    <span id="cartSubtotal" class="text-xl font-bold text-indigo-600">$0.00</span>
+                </div>
+                <div class="flex justify-between items-center mb-4 text-sm text-gray-500">
+                    <span>Delivery fee:</span>
+                    <span>$0.00</span>
+                </div>
+                <div class="flex justify-between items-center mb-6 text-lg font-bold">
+                    <span>Total:</span>
+                    <span id="cartTotal" class="text-2xl text-indigo-600">$0.00</span>
+                </div>
+                <button onclick="checkout()"
+                    class="w-full bg-gradient-to-r from-indigo-500 to-purple-500 text-white py-3 rounded-xl font-semibold hover:shadow-lg transition">
+                    Checkout →
+                </button>
+                <button onclick="clearCart()" class="w-full mt-2 text-gray-500 py-2 text-sm">Clear Cart</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toastContainer"></div>
+
+    <script src="network-config.js"></script>
+    <script>
+        const API = API_URL;
+        let currentToken = localStorage.getItem('token');
+        let currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+        let cart = [];
+        let currentCategory = 'all';
+        let allProducts = [];
+
+        // Dark Mode
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+            localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
+            const icon = document.getElementById('darkModeIcon');
+            icon.textContent = document.body.classList.contains('dark-mode') ? '☀️' : '🌙';
+        }
+
+        if (localStorage.getItem('darkMode') === 'true') {
+            document.body.classList.add('dark-mode');
+            document.getElementById('darkModeIcon').textContent = '☀️';
+        }
+
+        // Load initial data
+        async function loadData() {
+            if (!currentToken) {
+                window.location.href = 'index.html';
+                return;
+            }
+            await loadBalance();
+            await loadProducts();
+            loadCartFromStorage();
+        }
+
+        async function loadBalance() {
+            try {
+                const res = await fetch(`${API}/wallet/balance`, {
+                    headers: { 'Authorization': `Bearer ${currentToken}` }
+                });
+                const data = await res.json();
+                document.getElementById('balance').innerText = `$${data.balance.toFixed(2)}`;
+                document.getElementById('balanceLarge').innerText = `$${data.balance.toFixed(2)}`;
+            } catch (error) {
+                console.error('Error loading balance:', error);
+            }
+        }
+
+        async function loadProducts() {
+            try {
+                const res = await fetch(`${API}/products`);
+                allProducts = await res.json();
+
+                // Add more products if needed
+                if (allProducts.length < 20) {
+                    await seedMoreProducts();
+                }
+
+                renderProducts();
+            } catch (error) {
+                console.error('Error loading products:', error);
+            }
+        }
+
+        async function seedMoreProducts() {
+            const categories = {
+                cafeteria: [
+                    { name: "🍳 Breakfast Combo", price: 3.50, desc: "Eggs, toast, coffee" },
+                    { name: "🍝 Spaghetti Bolognese", price: 5.00, desc: "Classic pasta with meat sauce" },
+                    { name: "🥗 Grilled Chicken Salad", price: 4.50, desc: "Fresh greens with grilled chicken" },
+                    { name: "🍛 Rice & Beans", price: 3.00, desc: "Steamed rice with beans" },
+                    { name: "🥤 Fresh Juice", price: 1.50, desc: "Orange, mango, or apple" },
+                    { name: "🍰 Chocolate Cake", price: 2.00, desc: "Moist chocolate cake slice" }
+                ],
+                canteen: [
+                    { name: "🥪 Chicken Sandwich", price: 2.50, desc: "Grilled chicken with lettuce" },
+                    { name: "🌮 Beef Taco", price: 2.00, desc: "With salsa and cheese" },
+                    { name: "🍕 Pizza Slice", price: 2.50, desc: "Pepperoni or cheese" },
+                    { name: "🍔 Beef Burger", price: 3.00, desc: "With fries" },
+                    { name: "🍟 French Fries", price: 1.50, desc: "Crispy golden fries" },
+                    { name: "🌯 Chicken Wrap", price: 3.00, desc: "With ranch dressing" }
+                ],
+                minimart: [
+                    { name: "💧 Bottled Water", price: 0.50, desc: "500ml purified water" },
+                    { name: "🥤 Soda", price: 1.00, desc: "Coke, Sprite, Fanta" },
+                    { name: "🍫 Chocolate Bar", price: 1.00, desc: "Various brands" },
+                    { name: "🍪 Cookies", price: 0.50, desc: "Chocolate chip" },
+                    { name: "🥜 Chips", price: 0.80, desc: "Potato chips" },
+                    { name: "☕ Energy Drink", price: 2.00, desc: "Boost your energy" }
+                ],
+                stationery: [
+                    { name: "📓 Notebook", price: 2.00, desc: "100 pages, A4" },
+                    { name: "✏️ Pen Pack", price: 1.00, desc: "Pack of 5 pens" },
+                    { name: "📏 Ruler Set", price: 1.50, desc: "Ruler, triangle, protractor" },
+                    { name: "🎨 Color Pencils", price: 3.00, desc: "12 colors" },
+                    { name: "📚 Textbook", price: 15.00, desc: "Various subjects" },
+                    { name: "📎 Stapler", price: 2.50, desc: "With staples" }
+                ],
+                services: [
+                    { name: "🖨️ Printing (per page)", price: 0.10, desc: "Black & white" },
+                    { name: "📸 Color Printing", price: 0.30, desc: "Color per page" },
+                    { name: "📋 Photocopy", price: 0.05, desc: "Per page" },
+                    { name: "📦 Lamination", price: 1.00, desc: "Per A4 sheet" },
+                    { name: "🔋 Phone Charging", price: 0.50, desc: "30 minutes" },
+                    { name: "💻 Computer Access", price: 1.00, desc: "Per hour" }
+                ]
+            };
+
+            for (const [category, products] of Object.entries(categories)) {
+                for (const product of products) {
+                    const exists = allProducts.find(p => p.name === product.name);
+                    if (!exists) {
+                        await fetch(`${API}/admin/products`, {
+                            method: 'POST',
+                            headers: {
+                                'Authorization': `Bearer ${currentToken}`,
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                name: product.name,
+                                price: product.price,
+                                category: category,
+                                description: product.desc,
+                                stock: 999
+                            })
+                        });
+                    }
+                }
+            }
+        }
+
+        function renderProducts() {
+            let filtered = allProducts;
+            if (currentCategory !== 'all') {
+                filtered = allProducts.filter(p => p.category === currentCategory);
+            }
+
+            const container = document.getElementById('productsGrid');
+
+            if (filtered.length === 0) {
+                container.innerHTML = '<div class="col-span-full text-center py-12 text-gray-500">No products in this category</div>';
+                return;
+            }
+
+            container.innerHTML = filtered.map(product => `
+                <div class="product-card bg-white rounded-2xl shadow-lg overflow-hidden">
+                    <div class="h-32 bg-gradient-to-r from-indigo-500 to-purple-500 flex items-center justify-center">
+                        <span class="text-5xl">${getProductIcon(product.category)}</span>
+                    </div>
+                    <div class="p-4">
+                        <h3 class="font-bold text-lg">${product.name}</h3>
+                        <p class="text-sm text-gray-500 mt-1">${product.description || 'Delicious and fresh'}</p>
+                        <div class="flex justify-between items-center mt-3">
+                            <span class="text-2xl font-bold text-indigo-600">$${product.price.toFixed(2)}</span>
+                            <button onclick="addToCart('${product.id}', '${product.name}', ${product.price})" 
+                                    class="bg-gradient-to-r from-indigo-500 to-purple-500 text-white px-4 py-2 rounded-lg hover:shadow-lg transition">
+                                Add +
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function getProductIcon(category) {
+            const icons = {
+                cafeteria: '🍽️',
+                canteen: '🥪',
+                minimart: '🏪',
+                stationery: '📚',
+                services: '🔧'
+            };
+            return icons[category] || '🛒';
+        }
+
+        function filterCategory(category) {
+            currentCategory = category;
+
+            // Update active tab styling
+            document.querySelectorAll('.category-tab').forEach(tab => {
+                tab.classList.remove('active');
+                if (tab.getAttribute('data-category') === category) {
+                    tab.classList.add('active');
+                }
+            });
+
+            renderProducts();
+        }
+
+        function addToCart(id, name, price) {
+            const existing = cart.find(item => item.id === id);
+            if (existing) {
+                existing.quantity++;
+            } else {
+                cart.push({ id, name, price, quantity: 1 });
+            }
+
+            updateCartDisplay();
+            saveCartToStorage();
+            showToast(`Added ${name} to cart!`, 'success');
+        }
+
+        function updateCartDisplay() {
+            const cartContainer = document.getElementById('cartItems');
+            const itemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
+            const subtotal = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+
+            document.getElementById('cartCount').innerText = itemCount;
+            document.getElementById('cartCount').classList.toggle('hidden', itemCount === 0);
+            document.getElementById('cartSubtotal').innerText = `$${subtotal.toFixed(2)}`;
+            document.getElementById('cartTotal').innerText = `$${subtotal.toFixed(2)}`;
+
+            if (cart.length === 0) {
+                cartContainer.innerHTML = '<p class="text-gray-500 text-center">Your cart is empty</p>';
+                return;
+            }
+
+            cartContainer.innerHTML = cart.map(item => `
+                <div class="flex justify-between items-center border-b pb-3">
+                    <div>
+                        <p class="font-semibold">${item.name}</p>
+                        <p class="text-sm text-gray-500">$${item.price.toFixed(2)} each</p>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button onclick="updateQuantity('${item.id}', ${item.quantity - 1})" class="quantity-btn w-8 h-8 bg-gray-200 rounded-full">-</button>
+                        <span class="w-8 text-center">${item.quantity}</span>
+                        <button onclick="updateQuantity('${item.id}', ${item.quantity + 1})" class="quantity-btn w-8 h-8 bg-gray-200 rounded-full">+</button>
+                    </div>
+                    <p class="font-bold">$${(item.price * item.quantity).toFixed(2)}</p>
+                </div>
+            `).join('');
+        }
+
+        function updateQuantity(id, newQuantity) {
+            if (newQuantity <= 0) {
+                cart = cart.filter(item => item.id !== id);
+            } else {
+                const item = cart.find(item => item.id === id);
+                if (item) item.quantity = newQuantity;
+            }
+            updateCartDisplay();
+            saveCartToStorage();
+        }
+
+        function clearCart() {
+            cart = [];
+            updateCartDisplay();
+            saveCartToStorage();
+            showToast('Cart cleared', 'info');
+        }
+
+        async function checkout() {
+            if (cart.length === 0) {
+                showToast('Your cart is empty!', 'error');
+                return;
+            }
+
+            const products = cart.map(item => ({ productId: item.id, quantity: item.quantity }));
+
+            const res = await fetch(`${API}/wallet/pay`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${currentToken}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ products })
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                showToast(`✅ Payment successful! $${data.total.toFixed(2)}`, 'success');
+                cart = [];
+                updateCartDisplay();
+                saveCartToStorage();
+                toggleCart();
+                loadBalance();
+                showToast('Thank you for your order! 🎉', 'success');
+            } else {
+                const error = await res.json();
+                showToast('Payment failed: ' + error.error, 'error');
+            }
+        }
+
+        function toggleCart() {
+            document.getElementById('cartSidebar').classList.toggle('open');
+            document.getElementById('cartOverlay').classList.toggle('open');
+        }
+
+        function saveCartToStorage() {
+            localStorage.setItem('cart', JSON.stringify(cart));
+        }
+
+        function loadCartFromStorage() {
+            const saved = localStorage.getItem('cart');
+            if (saved) {
+                cart = JSON.parse(saved);
+                updateCartDisplay();
+            }
+        }
+
+        function showToast(message, type) {
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.style.background = type === 'success' ? '#48bb78' : type === 'error' ? '#f56565' : '#4299e1';
+            toast.innerHTML = message;
+            document.body.appendChild(toast);
+
+            setTimeout(() => {
+                toast.remove();
+            }, 3000);
+        }
+
+        // Load everything
+        loadData();
+    </script>
+</body>
+
+</html>

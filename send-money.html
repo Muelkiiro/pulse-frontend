@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <script src="config.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pulse - Send Money</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <style>
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+
+        body.dark-mode {
+            background: #1a1a2e;
+            color: #f0f0f0;
+        }
+
+        body.dark-mode .bg-white {
+            background: #1e1e2e !important;
+        }
+
+        .shake {
+            animation: shake 0.5s ease-in-out;
+        }
+
+        @keyframes shake {
+
+            0%,
+            100% {
+                transform: translateX(0);
+            }
+
+            25% {
+                transform: translateX(-5px);
+            }
+
+            75% {
+                transform: translateX(5px);
+            }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .success-pulse {
+            animation: successPulse 0.5s ease-out;
+        }
+
+        @keyframes successPulse {
+            0% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.05);
+                background: #48bb78;
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
+    </style>
+</head>
+
+<body class="bg-gradient-to-br from-gray-50 to-gray-100">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-lg sticky top-0 z-50">
+        <div class="container mx-auto px-4 py-3">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center gap-3">
+                    <div
+                        class="w-10 h-10 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-xl flex items-center justify-center">
+                        <span class="text-white font-bold text-xl">P</span>
+                    </div>
+                    <span class="font-bold text-xl">Send Money</span>
+                </div>
+                <div class="flex items-center gap-4">
+                    <div class="bg-green-500 text-white px-4 py-2 rounded-full">
+                        <span id="balance">$0.00</span>
+                    </div>
+                    <button onclick="location.href='index.html'" class="text-gray-600 hover:text-gray-800">←
+                        Back</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mx-auto px-4 py-8 max-w-2xl">
+        <!-- Send Money Card -->
+        <div class="bg-white rounded-2xl shadow-xl p-8">
+            <div class="text-center mb-8">
+                <div
+                    class="w-20 h-20 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <span class="text-4xl">💸</span>
+                </div>
+                <h1 class="text-2xl font-bold">Send Money to a Friend</h1>
+                <p class="text-gray-500 mt-2">Enter registration number and amount</p>
+            </div>
+
+            <!-- Registration Number Input -->
+            <div class="mb-6">
+                <label class="block text-sm font-semibold mb-2">📝 Recipient's Registration Number</label>
+                <div class="relative">
+                    <input type="text" id="regNumber" placeholder="e.g., STU001 or 2024-001"
+                        class="w-full p-4 border-2 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-lg"
+                        autocomplete="off">
+                    <div id="searchingIndicator" class="hidden absolute right-4 top-4">
+                        <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-indigo-600"></div>
+                    </div>
+                </div>
+                <div id="namePreview" class="mt-3 hidden fade-in">
+                    <div class="bg-green-50 border border-green-200 rounded-xl p-4">
+                        <div class="flex items-center gap-3">
+                            <span class="text-3xl">👤</span>
+                            <div>
+                                <p class="text-sm text-gray-600">Sending to:</p>
+                                <p class="font-bold text-lg" id="recipientName">-</p>
+                                <p class="text-sm text-gray-500" id="recipientReg">-</p>
+                            </div>
+                            <div class="ml-auto">
+                                <span class="bg-green-500 text-white text-xs px-2 py-1 rounded-full">Verified ✓</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id="errorMessage" class="mt-3 hidden">
+                    <div class="bg-red-50 border border-red-200 rounded-xl p-4 text-red-600">
+                        ❌ <span id="errorText"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Amount Input -->
+            <div class="mb-6">
+                <label class="block text-sm font-semibold mb-2">💰 Amount to Send</label>
+                <input type="number" id="amount" placeholder="0.00" step="0.01"
+                    class="w-full p-4 border-2 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-lg">
+            </div>
+
+            <!-- Description (Optional) -->
+            <div class="mb-8">
+                <label class="block text-sm font-semibold mb-2">📝 Description (Optional)</label>
+                <input type="text" id="description" placeholder="e.g., Lunch money, Book fee, etc."
+                    class="w-full p-3 border-2 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none">
+            </div>
+
+            <!-- Confirmation Card -->
+            <div id="confirmationCard" class="hidden bg-gray-50 rounded-xl p-6 mb-6 fade-in">
+                <h3 class="font-bold mb-3">📋 Confirm Transfer</h3>
+                <div class="space-y-2 text-sm">
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Recipient:</span>
+                        <span class="font-semibold" id="confirmName">-</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Registration:</span>
+                        <span class="font-semibold" id="confirmReg">-</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-gray-600">Amount:</span>
+                        <span class="font-bold text-lg text-indigo-600" id="confirmAmount">$0.00</span>
+                    </div>
+                    <div class="border-t pt-2 mt-2">
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Your balance after:</span>
+                            <span class="font-semibold" id="balanceAfter">$0.00</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Send Button -->
+            <button id="sendBtn" onclick="processTransfer()"
+                class="w-full bg-gradient-to-r from-indigo-500 to-purple-500 text-white py-4 rounded-xl font-bold text-lg hover:shadow-lg transition disabled:opacity-50 disabled:cursor-not-allowed">
+                💸 Send Money
+            </button>
+
+            <!-- Recent Transfers -->
+            <div class="mt-8 pt-6 border-t">
+                <h3 class="font-semibold mb-3">📋 Recent Transfers</h3>
+                <div id="recentTransfers" class="space-y-2 max-h-64 overflow-y-auto">
+                    <p class="text-gray-500 text-center py-4">No recent transfers</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Modal -->
+    <div id="successModal"
+        class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6 text-center success-pulse">
+            <div class="text-6xl mb-4">✅</div>
+            <h2 class="text-2xl font-bold mb-2">Transfer Successful!</h2>
+            <p id="successMessage" class="text-gray-600 mb-4">Money sent successfully</p>
+            <button onclick="closeSuccessModal()" class="bg-indigo-600 text-white px-6 py-2 rounded-lg">Close</button>
+        </div>
+    </div>
+
+    <script src="network-config.js"></script>
+    <script>
+        const API = API_URL;
+        let currentToken = localStorage.getItem('token');
+        let currentUser = JSON.parse(localStorage.getItem('user') || '{}');
+        let currentBalance = 0;
+        let selectedRecipient = null;
+        let lookupTimeout = null;
+
+        // Load balance on page load
+        async function loadBalance() {
+            try {
+                const res = await fetch(`${API}/wallet/balance`, {
+                    headers: { 'Authorization': `Bearer ${currentToken}` }
+                });
+                const data = await res.json();
+                currentBalance = data.balance;
+                document.getElementById('balance').innerText = `$${data.balance.toFixed(2)}`;
+            } catch (error) {
+                console.error('Error loading balance:', error);
+            }
+        }
+
+        // Look up student by registration number
+        async function lookupStudent() {
+            const regNumber = document.getElementById('regNumber').value.trim();
+
+            if (!regNumber) {
+                hideNamePreview();
+                return;
+            }
+
+            // Show searching indicator
+            document.getElementById('searchingIndicator').classList.remove('hidden');
+            hideError();
+
+            try {
+                const res = await fetch(`${API}/wallet/lookup-student`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${currentToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ studentId: regNumber })
+                });
+
+                if (res.ok) {
+                    const data = await res.json();
+                    selectedRecipient = data;
+                    showNamePreview(data);
+                    updateConfirmation();
+                } else {
+                    selectedRecipient = null;
+                    showError('Student not found. Please check the registration number.');
+                    hideNamePreview();
+                }
+            } catch (error) {
+                selectedRecipient = null;
+                showError('Error looking up student. Please try again.');
+                hideNamePreview();
+            } finally {
+                document.getElementById('searchingIndicator').classList.add('hidden');
+            }
+        }
+
+        function showNamePreview(data) {
+            const preview = document.getElementById('namePreview');
+            document.getElementById('recipientName').innerText = data.name || data.studentId;
+            document.getElementById('recipientReg').innerText = data.studentId;
+            preview.classList.remove('hidden');
+        }
+
+        function hideNamePreview() {
+            document.getElementById('namePreview').classList.add('hidden');
+            document.getElementById('confirmationCard').classList.add('hidden');
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            document.getElementById('errorText').innerText = message;
+            errorDiv.classList.remove('hidden');
+            document.getElementById('regNumber').classList.add('shake');
+            setTimeout(() => {
+                document.getElementById('regNumber').classList.remove('shake');
+            }, 500);
+        }
+
+        function hideError() {
+            document.getElementById('errorMessage').classList.add('hidden');
+        }
+
+        function updateConfirmation() {
+            const amount = parseFloat(document.getElementById('amount').value);
+
+            if (selectedRecipient && amount > 0) {
+                document.getElementById('confirmationCard').classList.remove('hidden');
+                document.getElementById('confirmName').innerText = selectedRecipient.name || selectedRecipient.studentId;
+                document.getElementById('confirmReg').innerText = selectedRecipient.studentId;
+                document.getElementById('confirmAmount').innerText = `$${amount.toFixed(2)}`;
+                document.getElementById('balanceAfter').innerText = `$${(currentBalance - amount).toFixed(2)}`;
+
+                // Enable send button
+                document.getElementById('sendBtn').disabled = false;
+            } else {
+                document.getElementById('confirmationCard').classList.add('hidden');
+                document.getElementById('sendBtn').disabled = true;
+            }
+        }
+
+        async function processTransfer() {
+            const amount = parseFloat(document.getElementById('amount').value);
+            const description = document.getElementById('description').value || 'Peer transfer';
+
+            if (!selectedRecipient) {
+                showError('Please enter a valid registration number');
+                return;
+            }
+
+            if (!amount || amount <= 0) {
+                alert('Please enter a valid amount');
+                return;
+            }
+
+            if (amount > currentBalance) {
+                alert(`Insufficient balance! You have $${currentBalance.toFixed(2)}`);
+                return;
+            }
+
+            // Show loading on button
+            const btn = document.getElementById('sendBtn');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<div class="animate-spin rounded-full h-5 w-5 border-b-2 border-white mx-auto"></div>';
+            btn.disabled = true;
+
+            try {
+                const res = await fetch(`${API}/wallet/transfer`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${currentToken}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        toStudentId: selectedRecipient.studentId,
+                        amount: amount,
+                        description: description
+                    })
+                });
+
+                if (res.ok) {
+                    const data = await res.json();
+                    showSuccessModal(`Successfully sent $${amount.toFixed(2)} to ${selectedRecipient.name || selectedRecipient.studentId}`);
+
+                    // Reset form
+                    document.getElementById('regNumber').value = '';
+                    document.getElementById('amount').value = '';
+                    document.getElementById('description').value = '';
+                    selectedRecipient = null;
+                    hideNamePreview();
+                    hideError();
+                    loadBalance();
+                    loadRecentTransfers();
+                } else {
+                    const error = await res.json();
+                    alert('Transfer failed: ' + error.error);
+                }
+            } catch (error) {
+                alert('Error: ' + error.message);
+            } finally {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        }
+
+        async function loadRecentTransfers() {
+            try {
+                const res = await fetch(`${API}/wallet/transactions`, {
+                    headers: { 'Authorization': `Bearer ${currentToken}` }
+                });
+                const transactions = await res.json();
+                const transfers = transactions.filter(t => t.type === 'transfer_sent').slice(0, 5);
+
+                const container = document.getElementById('recentTransfers');
+                if (transfers.length === 0) {
+                    container.innerHTML = '<p class="text-gray-500 text-center py-4">No recent transfers</p>';
+                    return;
+                }
+
+                container.innerHTML = transfers.map(t => `
+                    <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                        <div>
+                            <p class="font-semibold text-sm">${t.description || 'Transfer'}</p>
+                            <p class="text-xs text-gray-500">${new Date(t.timestamp).toLocaleString()}</p>
+                        </div>
+                        <p class="font-bold text-red-600">-$${Math.abs(t.amount).toFixed(2)}</p>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Error loading transfers:', error);
+            }
+        }
+
+        function showSuccessModal(message) {
+            document.getElementById('successMessage').innerText = message;
+            document.getElementById('successModal').classList.remove('hidden');
+            setTimeout(() => {
+                closeSuccessModal();
+            }, 3000);
+        }
+
+        function closeSuccessModal() {
+            document.getElementById('successModal').classList.add('hidden');
+        }
+
+        // Event listeners
+        document.getElementById('regNumber').addEventListener('input', function () {
+            clearTimeout(lookupTimeout);
+            lookupTimeout = setTimeout(lookupStudent, 800);
+        });
+
+        document.getElementById('amount').addEventListener('input', updateConfirmation);
+
+        // Initial load
+        if (!currentToken) {
+            window.location.href = 'index.html';
+        } else {
+            loadBalance();
+            loadRecentTransfers();
+        }
+    </script>
+</body>
+
+</html>

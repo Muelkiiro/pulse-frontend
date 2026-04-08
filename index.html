@@ -1,0 +1,1492 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Pulse Ultimate - Complete Campus Wallet</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <style>
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            transition: background-color 0.3s ease;
+        }
+
+        body.dark-mode {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #f0f0f0;
+        }
+
+        body.dark-mode .bg-white,
+        body.dark-mode .bg-gray-50,
+        body.dark-mode .bg-gray-100 {
+            background: #1e1e2e !important;
+            color: #e0e0e0;
+        }
+
+        body.dark-mode .text-gray-600,
+        body.dark-mode .text-gray-500 {
+            color: #a0a0a0 !important;
+        }
+
+        body.dark-mode .border,
+        body.dark-mode .border-b {
+            border-color: #333 !important;
+        }
+
+        .card-container {
+            perspective: 1000px;
+            cursor: pointer;
+            height: 220px;
+        }
+
+        .card-flip {
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+
+        .card-flip.flipped {
+            transform: rotateY(180deg);
+        }
+
+        .card-front,
+        .card-back {
+            backface-visibility: hidden;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 24px;
+        }
+
+        .card-front {
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            transform: rotateY(0deg);
+        }
+
+        .card-back {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            transform: rotateY(180deg);
+        }
+
+        .tab-btn {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .tab-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 10px 20px -5px rgba(102, 126, 234, 0.4);
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #48bb78;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 50px;
+            z-index: 1001;
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+
+        .loader {
+            width: 48px;
+            height: 48px;
+            border: 3px solid #667eea;
+            border-bottom-color: transparent;
+            border-radius: 50%;
+            animation: rotation 1s linear infinite;
+        }
+
+        @keyframes rotation {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 24px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: 0.3s;
+            border-radius: 24px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: 0.3s;
+            border-radius: 50%;
+        }
+
+        input:checked+.toggle-slider {
+            background-color: #667eea;
+        }
+
+        input:checked+.toggle-slider:before {
+            transform: translateX(26px);
+        }
+
+        .progress-bar {
+            transition: width 0.5s ease;
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 10px;
+        }
+
+        .id-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 16px;
+            transition: transform 0.3s ease;
+        }
+
+        .id-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .booking-slot {
+            transition: all 0.2s ease;
+        }
+
+        .booking-slot:hover {
+            background: #e0e7ff;
+            transform: scale(1.02);
+        }
+
+        .booking-slot.booked {
+            background: #fee2e2;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        .booking-slot.available {
+            background: #dcfce7;
+            cursor: pointer;
+        }
+
+        .booking-slot.selected {
+            background: #667eea;
+            color: white;
+        }
+    </style>
+</head>
+
+<body class="bg-gradient-to-br from-gray-50 to-gray-100">
+    <!-- Navigation -->
+    <nav class="bg-white shadow-lg sticky top-0 z-50 transition-all duration-300">
+        <div class="container mx-auto px-4 py-3">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center gap-3">
+                    <div
+                        class="w-10 h-10 bg-gradient-to-r from-indigo-600 to-purple-600 rounded-xl flex items-center justify-center">
+                        <span class="text-white font-bold text-xl">P</span>
+                    </div>
+                    <div>
+                        <span
+                            class="font-bold text-xl bg-gradient-to-r from-indigo-600 to-purple-600 bg-clip-text text-transparent">Pulse
+                            Ultimate</span>
+                        <span class="text-sm text-gray-500 ml-1">Complete Campus Wallet v3.0</span>
+                    </div>
+                </div>
+                <div class="flex items-center gap-4">
+                    <button onclick="toggleDarkMode()" class="text-2xl hover:scale-110 transition-transform"><span
+                            id="darkModeIcon">🌙</span></button>
+                    <div class="bg-gradient-to-r from-green-500 to-green-600 text-white px-4 py-2 rounded-full"><span
+                            id="balance">KES 0.00</span></div>
+                    <div class="relative">
+                        <button onclick="toggleProfileDropdown()"
+                            class="w-10 h-10 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full flex items-center justify-center text-white font-bold">👤</button>
+                        <div id="profileDropdown"
+                            class="hidden absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-xl py-2 z-50">
+                            <div class="px-4 py-3 border-b">
+                                <p class="font-semibold" id="profileName">Student</p>
+                                <p class="text-xs text-gray-500" id="profileEmail">loading...</p>
+                            </div>
+                            <button onclick="showProfileModal()" class="w-full text-left px-4 py-2 hover:bg-gray-100">👤
+                                My Profile</button>
+                            <button onclick="showIdCardModal()" class="w-full text-left px-4 py-2 hover:bg-gray-100">🪪
+                                Student ID Card</button>
+                            <button onclick="showSettingsModal()"
+                                class="w-full text-left px-4 py-2 hover:bg-gray-100">⚙️ Settings</button>
+                            <button onclick="showSecurityModal()"
+                                class="w-full text-left px-4 py-2 hover:bg-gray-100">🔒 Security</button>
+                            <button onclick="showSpendingLimitModal()"
+                                class="w-full text-left px-4 py-2 hover:bg-gray-100">💰 Spending Limit</button>
+                            <button onclick="exportTransactions()"
+                                class="w-full text-left px-4 py-2 hover:bg-gray-100">📊 Export to Excel</button>
+                            <hr class="my-1"><button onclick="logout()"
+                                class="w-full text-left px-4 py-2 text-red-600 hover:bg-gray-100">🚪 Logout</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mx-auto px-4 py-6 max-w-7xl">
+        <!-- Welcome Banner -->
+        <div class="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-2xl p-6 mb-6 text-white">
+            <div class="flex justify-between items-center">
+                <div>
+                    <p class="text-sm opacity-90">Welcome back,</p>
+                    <h1 class="text-2xl font-bold" id="welcomeName">Student</h1>
+                    <p class="text-sm opacity-80 mt-1">Student ID: <span id="studentIdDisplay">STU001</span></p>
+                </div>
+                <div class="text-right">
+                    <p class="text-sm opacity-80">Available Balance</p>
+                    <p class="text-3xl font-bold" id="balanceLarge">KES 0.00</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Tabs -->
+        <div class="flex overflow-x-auto gap-2 mb-6 pb-2">
+            <button onclick="showTab('dashboard')"
+                class="tab-btn active px-3 py-2 rounded-xl font-semibold bg-white shadow-md whitespace-nowrap text-sm">📊
+                Dashboard</button>
+            <button onclick="showTab('wallet')"
+                class="tab-btn px-3 py-2 rounded-xl font-semibold bg-white shadow-md whitespace-nowrap text-sm">💰
+                Wallet</button>
+            <button onclick="showTab('send')"
+                class="tab-btn px-3 py-2 rounded-xl font-semibold bg-white shadow-md whitespace-nowrap text-sm">💸
+                Send</button>
+            <button onclick="showTab('market')"
+                class="tab-btn px-3 py-2 rounded-xl font-semibold bg-white shadow-md whitespace-nowrap text-sm">🛒
+                Market</button>
+            <button onclick="showTab('meal')"
+                class="tab-btn px-3 py-2 rounded-xl font-semibold bg-white shadow-md whitespace-nowrap text-sm">🍽️ Meal
+                Plan</button>
+            <button onclick="showTab('library')"
+                class="tab-btn px-3 py-2 rounded-xl font-semibold bg-white shadow-md whitespace-nowrap text-sm">📚
+                Library</button>
+            <button onclick="showTab('gym')"
+                class="tab-btn px-3 py-2 rounded-xl font-semibold bg-white shadow-md whitespace-nowrap text-sm">🏋️
+                Gym</button>
+            <button onclick="showTab('laundry')"
+                class="tab-btn px-3 py-2 rounded-xl font-semibold bg-white shadow-md whitespace-nowrap text-sm">🧺
+                Laundry</button>
+            <button onclick="showTab('transport')"
+                class="tab-btn px-3 py-2 rounded-xl font-semibold bg-white shadow-md whitespace-nowrap text-sm">🚌
+                Transport</button>
+            <button onclick="showTab('lostfound')"
+                class="tab-btn px-3 py-2 rounded-xl font-semibold bg-white shadow-md whitespace-nowrap text-sm">🔍
+                Lost&Found</button>
+            <button onclick="showTab('notice')"
+                class="tab-btn px-3 py-2 rounded-xl font-semibold bg-white shadow-md whitespace-nowrap text-sm">📢
+                Notice</button>
+            <button onclick="showTab('timetable')"
+                class="tab-btn px-3 py-2 rounded-xl font-semibold bg-white shadow-md whitespace-nowrap text-sm">📅
+                Schedule</button>
+            <button onclick="showTab('card')"
+                class="tab-btn px-3 py-2 rounded-xl font-semibold bg-white shadow-md whitespace-nowrap text-sm">💳
+                Card</button>
+            <button onclick="showTab('analytics')"
+                class="tab-btn px-3 py-2 rounded-xl font-semibold bg-white shadow-md whitespace-nowrap text-sm">📈
+                Analytics</button>
+            <button onclick="showTab('history')"
+                class="tab-btn px-3 py-2 rounded-xl font-semibold bg-white shadow-md whitespace-nowrap text-sm">📜
+                History</button>
+        </div>
+
+        <!-- Dashboard Tab -->
+        <div id="dashboardTab" class="tab-content">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                <div class="bg-white rounded-xl p-4 text-center shadow">
+                    <div class="text-3xl mb-1">💸</div>
+                    <div class="text-2xl font-bold text-indigo-600" id="totalSpent">KES 0</div>
+                    <div class="text-xs text-gray-500">Total Spent</div>
+                </div>
+                <div class="bg-white rounded-xl p-4 text-center shadow">
+                    <div class="text-3xl mb-1">📊</div>
+                    <div class="text-2xl font-bold text-green-600" id="totalTransfers">0</div>
+                    <div class="text-xs text-gray-500">Transfers</div>
+                </div>
+                <div class="bg-white rounded-xl p-4 text-center shadow">
+                    <div class="text-3xl mb-1">⭐</div>
+                    <div class="text-2xl font-bold text-yellow-600" id="points">0</div>
+                    <div class="text-xs text-gray-500">Points</div>
+                </div>
+                <div class="bg-white rounded-xl p-4 text-center shadow">
+                    <div class="text-3xl mb-1">🎯</div>
+                    <div class="text-2xl font-bold text-purple-600" id="savingsProgress">0%</div>
+                    <div class="text-xs text-gray-500">Savings</div>
+                </div>
+            </div>
+            <div class="bg-white rounded-2xl shadow-lg p-6 mb-6">
+                <h3 class="font-bold text-lg mb-4">📈 Weekly Spending</h3><canvas id="spendingChart"
+                    height="150"></canvas>
+            </div>
+            <div class="bg-white rounded-2xl shadow-lg p-6">
+                <h3 class="font-bold text-lg mb-4">📋 Recent Activity</h3>
+                <div id="recentTransactions" class="space-y-3 max-h-64 overflow-y-auto">
+                    <p class="text-gray-500 text-center py-4">No transactions yet</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Wallet Tab -->
+        <div id="walletTab" class="tab-content hidden">
+            <div class="grid md:grid-cols-2 gap-6">
+                <div class="bg-white rounded-2xl shadow-xl p-6">
+                    <h3 class="font-bold text-lg mb-4">💰 Balance Overview</h3>
+                    <div class="text-center py-6">
+                        <p class="text-gray-500 text-sm">Current Balance</p>
+                        <p class="text-5xl font-bold text-indigo-600" id="walletBalance">KES 0.00</p>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3"><button onclick="showTopUpModal()"
+                            class="bg-green-500 text-white py-3 rounded-xl font-semibold hover:bg-green-600">💸 Top
+                            Up</button><button onclick="showWithdrawModal()"
+                            class="bg-red-500 text-white py-3 rounded-xl font-semibold hover:bg-red-600">🏧
+                            Withdraw</button></div>
+                </div>
+                <div class="bg-white rounded-2xl shadow-xl p-6">
+                    <h3 class="font-bold text-lg mb-4">📊 Quick Stats</h3>
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-center p-3 bg-gray-50 rounded-xl"><span>Total
+                                Deposits</span><span class="font-bold text-green-600" id="totalDeposits">KES 0</span>
+                        </div>
+                        <div class="flex justify-between items-center p-3 bg-gray-50 rounded-xl"><span>Total
+                                Withdrawals</span><span class="font-bold text-red-600" id="totalWithdrawals">KES
+                                0</span></div>
+                        <div class="flex justify-between items-center p-3 bg-gray-50 rounded-xl"><span>Transaction
+                                Count</span><span class="font-bold" id="transactionCount">0</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Send Money Tab -->
+        <div id="sendTab" class="tab-content hidden">
+            <div class="bg-white rounded-2xl shadow-xl p-6 max-w-md mx-auto">
+                <div class="text-center mb-6">
+                    <div
+                        class="w-16 h-16 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full flex items-center justify-center mx-auto mb-3">
+                        <span class="text-3xl">💸</span></div>
+                    <h2 class="text-xl font-bold">Send Money</h2>
+                    <p class="text-gray-500 text-sm">Enter recipient and amount</p>
+                </div>
+                <div class="mb-4"><label class="block text-sm font-semibold mb-2">Recipient Student ID</label><input
+                        type="text" id="sendRecipient" placeholder="e.g., STU001"
+                        class="w-full p-3 border-2 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none"></div>
+                <div class="mb-4"><label class="block text-sm font-semibold mb-2">Amount</label><input type="number"
+                        id="sendAmount" placeholder="0.00" step="0.01"
+                        class="w-full p-3 border-2 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none"></div>
+                <div class="mb-6"><label class="block text-sm font-semibold mb-2">Description</label><input type="text"
+                        id="sendDescription" placeholder="e.g., Lunch money"
+                        class="w-full p-3 border-2 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none"></div>
+                <button onclick="sendMoney()"
+                    class="w-full bg-gradient-to-r from-indigo-500 to-purple-500 text-white py-3 rounded-xl font-bold">Send
+                    Money</button>
+            </div>
+        </div>
+
+        <!-- Marketplace Tab -->
+        <div id="marketTab" class="tab-content hidden">
+            <div class="flex overflow-x-auto gap-2 mb-4 pb-2">
+                <button onclick="filterMarket('all')"
+                    class="market-filter px-3 py-2 rounded-xl bg-indigo-600 text-white text-sm whitespace-nowrap">🏠 All
+                    (72)</button>
+                <button onclick="filterMarket('cafeteria')"
+                    class="market-filter px-3 py-2 rounded-xl bg-white shadow-md text-sm whitespace-nowrap">🍽️
+                    Cafeteria (15)</button>
+                <button onclick="filterMarket('canteen')"
+                    class="market-filter px-3 py-2 rounded-xl bg-white shadow-md text-sm whitespace-nowrap">🥪 Canteen
+                    (15)</button>
+                <button onclick="filterMarket('minimart')"
+                    class="market-filter px-3 py-2 rounded-xl bg-white shadow-md text-sm whitespace-nowrap">🏪 Mini-Mart
+                    (15)</button>
+                <button onclick="filterMarket('stationery')"
+                    class="market-filter px-3 py-2 rounded-xl bg-white shadow-md text-sm whitespace-nowrap">📚
+                    Stationery (15)</button>
+                <button onclick="filterMarket('services')"
+                    class="market-filter px-3 py-2 rounded-xl bg-white shadow-md text-sm whitespace-nowrap">🔧 Services
+                    (12)</button>
+            </div>
+            <div id="productsGrid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                <div class="col-span-full text-center py-8">
+                    <div class="loader mx-auto"></div>
+                    <p class="mt-2">Loading 72 products...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Meal Planning Tab -->
+        <div id="mealTab" class="tab-content hidden">
+            <div class="bg-white rounded-2xl shadow-xl p-6 mb-6">
+                <h3 class="font-bold text-lg mb-4">🍽️ Weekly Meal Plan</h3>
+                <div class="grid md:grid-cols-7 gap-3" id="mealCalendar">
+                    <div class="text-center">
+                        <div class="font-bold p-2 bg-indigo-100 rounded-t-lg">Mon</div>
+                        <div id="mealMon" class="p-2 border rounded-b-lg min-h-[100px]">Not ordered</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="font-bold p-2 bg-indigo-100 rounded-t-lg">Tue</div>
+                        <div id="mealTue" class="p-2 border rounded-b-lg min-h-[100px]">Not ordered</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="font-bold p-2 bg-indigo-100 rounded-t-lg">Wed</div>
+                        <div id="mealWed" class="p-2 border rounded-b-lg min-h-[100px]">Not ordered</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="font-bold p-2 bg-indigo-100 rounded-t-lg">Thu</div>
+                        <div id="mealThu" class="p-2 border rounded-b-lg min-h-[100px]">Not ordered</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="font-bold p-2 bg-indigo-100 rounded-t-lg">Fri</div>
+                        <div id="mealFri" class="p-2 border rounded-b-lg min-h-[100px]">Not ordered</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="font-bold p-2 bg-indigo-100 rounded-t-lg">Sat</div>
+                        <div id="mealSat" class="p-2 border rounded-b-lg min-h-[100px]">Not ordered</div>
+                    </div>
+                    <div class="text-center">
+                        <div class="font-bold p-2 bg-indigo-100 rounded-t-lg">Sun</div>
+                        <div id="mealSun" class="p-2 border rounded-b-lg min-h-[100px]">Not ordered</div>
+                    </div>
+                </div>
+                <div class="mt-6 grid grid-cols-2 md:grid-cols-4 gap-3"><button onclick="orderMeal('Mon')"
+                        class="bg-green-500 text-white p-2 rounded-lg">Order Monday Lunch (KES 5)</button>
+                    <button onclick="orderMeal('Tue')" class="bg-green-500 text-white p-2 rounded-lg">Order Tuesday
+                        Lunch (KES 5)</button>
+                    <button onclick="orderMeal('Wed')" class="bg-green-500 text-white p-2 rounded-lg">Order Wednesday
+                        Lunch (KES 5)</button>
+                    <button onclick="orderMeal('Thu')" class="bg-green-500 text-white p-2 rounded-lg">Order Thursday
+                        Lunch (KES 5)</button>
+                    <button onclick="orderMeal('Fri')" class="bg-green-500 text-white p-2 rounded-lg">Order Friday Lunch
+                        (KES 5)</button>
+                    <button onclick="orderMeal('Sat')" class="bg-green-500 text-white p-2 rounded-lg">Order Saturday
+                        Brunch (KES 5)</button>
+                    <button onclick="orderMeal('Sun')" class="bg-green-500 text-white p-2 rounded-lg">Order Sunday
+                        Brunch (KES 5)</button>
+                    <button onclick="orderFullWeek()" class="bg-purple-600 text-white p-2 rounded-lg">Order Full Week
+                        (KES 30)</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Library Tab -->
+        <div id="libraryTab" class="tab-content hidden">
+            <div class="grid md:grid-cols-2 gap-6">
+                <div class="bg-white rounded-2xl shadow-xl p-6">
+                    <h3 class="font-bold text-lg mb-4">📚 Available Books</h3>
+                    <div id="booksList" class="space-y-3 max-h-96 overflow-y-auto"></div>
+                </div>
+                <div class="bg-white rounded-2xl shadow-xl p-6">
+                    <h3 class="font-bold text-lg mb-4">📖 My Borrowed Books</h3>
+                    <div id="borrowedBooks" class="space-y-3 max-h-96 overflow-y-auto">
+                        <p class="text-gray-500 text-center py-4">No books borrowed</p>
+                    </div>
+                    <div class="mt-4 p-3 bg-yellow-50 rounded-xl">
+                        <p class="font-semibold">💰 Library Fine: KES <span id="libraryFine">0.00</span></p><button
+                            onclick="payLibraryFine()"
+                            class="mt-2 bg-red-500 text-white px-4 py-2 rounded-lg text-sm">Pay Fine</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gym Booking Tab -->
+        <div id="gymTab" class="tab-content hidden">
+            <div class="bg-white rounded-2xl shadow-xl p-6">
+                <h3 class="font-bold text-lg mb-4">🏋️ Gym Slot Booking</h3>
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3" id="gymSlots">
+                    <div class="booking-slot available p-3 rounded-lg text-center" data-slot="6am-8am">6:00 AM - 8:00
+                        AM<br><span class="text-xs">Available</span></div>
+                    <div class="booking-slot available p-3 rounded-lg text-center" data-slot="8am-10am">8:00 AM - 10:00
+                        AM<br><span class="text-xs">Available</span></div>
+                    <div class="booking-slot available p-3 rounded-lg text-center" data-slot="10am-12pm">10:00 AM -
+                        12:00 PM<br><span class="text-xs">Available</span></div>
+                    <div class="booking-slot available p-3 rounded-lg text-center" data-slot="12pm-2pm">12:00 PM - 2:00
+                        PM<br><span class="text-xs">Available</span></div>
+                    <div class="booking-slot available p-3 rounded-lg text-center" data-slot="2pm-4pm">2:00 PM - 4:00
+                        PM<br><span class="text-xs">Available</span></div>
+                    <div class="booking-slot available p-3 rounded-lg text-center" data-slot="4pm-6pm">4:00 PM - 6:00
+                        PM<br><span class="text-xs">Available</span></div>
+                    <div class="booking-slot available p-3 rounded-lg text-center" data-slot="6pm-8pm">6:00 PM - 8:00
+                        PM<br><span class="text-xs">Available</span></div>
+                    <div class="booking-slot available p-3 rounded-lg text-center" data-slot="8pm-10pm">8:00 PM - 10:00
+                        PM<br><span class="text-xs">Available</span></div>
+                </div>
+                <div class="mt-4">
+                    <p class="text-sm text-gray-500">💰 Price per slot: KES 2.00</p><button onclick="bookGymSlot()"
+                        class="mt-3 bg-indigo-600 text-white px-6 py-2 rounded-lg">Book Selected Slot</button>
+                </div>
+                <div class="mt-4">
+                    <h4 class="font-semibold">My Bookings</h4>
+                    <div id="myGymBookings" class="space-y-2 mt-2"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Laundry Service Tab -->
+        <div id="laundryTab" class="tab-content hidden">
+            <div class="bg-white rounded-2xl shadow-xl p-6">
+                <h3 class="font-bold text-lg mb-4">🧺 Laundry Service</h3>
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div><label class="block text-sm font-semibold mb-2">Service Type</label><select id="laundryType"
+                            class="w-full p-3 border rounded-xl mb-4">
+                            <option value="wash">Wash & Fold - KES 5.00</option>
+                            <option value="wash_iron">Wash & Iron - KES 8.00</option>
+                            <option value="dry_clean">Dry Clean - KES 12.00</option>
+                        </select>
+                        <label class="block text-sm font-semibold mb-2">Pickup Date</label><input type="date"
+                            id="laundryDate" class="w-full p-3 border rounded-xl mb-4">
+                        <label class="block text-sm font-semibold mb-2">Special Instructions</label><textarea
+                            id="laundryInstructions" rows="2" class="w-full p-3 border rounded-xl mb-4"
+                            placeholder="e.g., Separate colors, delicate items"></textarea>
+                        <button onclick="requestLaundry()"
+                            class="w-full bg-blue-600 text-white py-3 rounded-xl font-bold">Request Laundry
+                            Service</button>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold mb-3">My Laundry Orders</h4>
+                        <div id="myLaundryOrders" class="space-y-3 max-h-96 overflow-y-auto">
+                            <p class="text-gray-500 text-center">No orders yet</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Transport Booking Tab -->
+        <div id="transportTab" class="tab-content hidden">
+            <div class="bg-white rounded-2xl shadow-xl p-6">
+                <h3 class="font-bold text-lg mb-4">🚌 Shuttle Booking</h3>
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div><label class="block text-sm font-semibold mb-2">Route</label><select id="transportRoute"
+                            class="w-full p-3 border rounded-xl mb-4">
+                            <option value="main">Main Campus - Town - KES 2.00</option>
+                            <option value="hostel">Hostel - Campus - KES 1.00</option>
+                            <option value="airport">Airport Transfer - KES 15.00</option>
+                        </select>
+                        <label class="block text-sm font-semibold mb-2">Departure Time</label><input
+                            type="datetime-local" id="transportTime" class="w-full p-3 border rounded-xl mb-4">
+                        <label class="block text-sm font-semibold mb-2">Number of Passengers</label><input type="number"
+                            id="transportPassengers" value="1" min="1" max="4"
+                            class="w-full p-3 border rounded-xl mb-4">
+                        <button onclick="bookTransport()"
+                            class="w-full bg-green-600 text-white py-3 rounded-xl font-bold">Book Shuttle</button>
+                    </div>
+                    <div>
+                        <h4 class="font-semibold mb-3">My Bookings</h4>
+                        <div id="myTransportBookings" class="space-y-3 max-h-96 overflow-y-auto">
+                            <p class="text-gray-500 text-center">No bookings yet</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Lost & Found Tab -->
+        <div id="lostfoundTab" class="tab-content hidden">
+            <div class="grid md:grid-cols-2 gap-6">
+                <div class="bg-white rounded-2xl shadow-xl p-6">
+                    <h3 class="font-bold text-lg mb-4">🔍 Report Lost Item</h3>
+                    <input type="text" id="lostItemName" placeholder="Item name"
+                        class="w-full p-3 border rounded-xl mb-3">
+                    <textarea id="lostItemDesc" rows="2" placeholder="Description (color, brand, etc.)"
+                        class="w-full p-3 border rounded-xl mb-3"></textarea>
+                    <input type="text" id="lostLocation" placeholder="Where was it lost?"
+                        class="w-full p-3 border rounded-xl mb-3">
+                    <input type="date" id="lostDate" class="w-full p-3 border rounded-xl mb-4">
+                    <button onclick="reportLostItem()"
+                        class="w-full bg-orange-500 text-white py-3 rounded-xl font-bold">Report Lost Item</button>
+                </div>
+                <div class="bg-white rounded-2xl shadow-xl p-6">
+                    <h3 class="font-bold text-lg mb-4">📋 Recently Lost Items</h3>
+                    <div id="lostItemsList" class="space-y-3 max-h-96 overflow-y-auto">
+                        <p class="text-gray-500 text-center">No lost items reported</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Notice Board Tab -->
+        <div id="noticeTab" class="tab-content hidden">
+            <div class="bg-white rounded-2xl shadow-xl p-6">
+                <h3 class="font-bold text-lg mb-4">📢 School Announcements</h3>
+                <div id="noticesList" class="space-y-3 max-h-[500px] overflow-y-auto"></div>
+            </div>
+        </div>
+
+        <!-- Timetable Tab -->
+        <div id="timetableTab" class="tab-content hidden">
+            <div class="bg-white rounded-2xl shadow-xl p-6">
+                <h3 class="font-bold text-lg mb-4">📅 Class Schedule</h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full border-collapse">
+                        <thead>
+                            <tr class="bg-indigo-600 text-white">
+                                <th class="p-3 border">Time</th>
+                                <th class="p-3 border">Monday</th>
+                                <th class="p-3 border">Tuesday</th>
+                                <th class="p-3 border">Wednesday</th>
+                                <th class="p-3 border">Thursday</th>
+                                <th class="p-3 border">Friday</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="p-2 border">8:00-10:00</td>
+                                <td class="p-2 border">Mathematics</td>
+                                <td class="p-2 border">Physics</td>
+                                <td class="p-2 border">Chemistry</td>
+                                <td class="p-2 border">English</td>
+                                <td class="p-2 border">History</td>
+                            </tr>
+                            <tr>
+                                <td class="p-2 border">10:00-12:00</td>
+                                <td class="p-2 border">Computer Science</td>
+                                <td class="p-2 border">Mathematics</td>
+                                <td class="p-2 border">Physics</td>
+                                <td class="p-2 border">Chemistry</td>
+                                <td class="p-2 border">Sports</td>
+                            </tr>
+                            <tr class="bg-gray-50">
+                                <td class="p-2 border" colspan="6" style="text-align:center">🍽️ Lunch Break
+                                    (12:00-1:00)</td>
+                            </tr>
+                            <tr>
+                                <td class="p-2 border">1:00-3:00</td>
+                                <td class="p-2 border">Biology</td>
+                                <td class="p-2 border">Geography</td>
+                                <td class="p-2 border">Mathematics</td>
+                                <td class="p-2 border">Physics</td>
+                                <td class="p-2 border">Free Study</td>
+                            </tr>
+                            <tr>
+                                <td class="p-2 border">3:00-5:00</td>
+                                <td class="p-2 border">Library</td>
+                                <td class="p-2 border">Sports</td>
+                                <td class="p-2 border">Computer Lab</td>
+                                <td class="p-2 border">Tutorial</td>
+                                <td class="p-2 border">Club Activities</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="mt-4 p-3 bg-green-50 rounded-xl">
+                    <p class="text-sm">📌 Next class: <span id="nextClass">Loading...</span></p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Virtual Card Tab -->
+        <div id="cardTab" class="tab-content hidden">
+            <div class="bg-white rounded-2xl shadow-xl p-6 max-w-md mx-auto">
+                <div class="card-container mb-6" onclick="flipCard()">
+                    <div class="card-flip" id="flipCard">
+                        <div class="card-front p-6 flex flex-col justify-between">
+                            <div>
+                                <div class="flex justify-between">
+                                    <div class="w-12 h-8 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-lg">
+                                    </div><span class="text-xs opacity-75">Virtual Card</span>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="text-2xl font-bold tracking-wider mb-3 flex items-center gap-2"><span
+                                        id="cardNumberDisplay">**** **** **** 2024</span><button
+                                        onclick="toggleCardNumber()"
+                                        class="text-xs bg-white/20 px-2 py-1 rounded">👁️</button></div>
+                                <div class="flex justify-between">
+                                    <div>
+                                        <div class="text-xs opacity-75">Card Holder</div>
+                                        <div class="font-semibold" id="cardHolder">Student</div>
+                                    </div>
+                                    <div>
+                                        <div class="text-xs opacity-75">Expires</div>
+                                        <div class="font-semibold" id="cardExpiry">12/26</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-back p-6 flex flex-col justify-between">
+                            <div class="mt-8">
+                                <div class="w-full h-10 bg-black opacity-80 rounded"></div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between">
+                                    <div>
+                                        <div class="text-xs opacity-75">CVV</div>
+                                        <div class="font-semibold" id="cardCVV">***</div>
+                                    </div>
+                                    <div>
+                                        <div class="text-xs opacity-75">Student ID</div>
+                                        <div class="font-semibold" id="cardStudentId">---</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <p class="text-center text-sm text-gray-500 mb-4">✨ Tap card to flip ✨</p>
+                <div class="border-t pt-4">
+                    <h3 class="font-bold mb-3">Generate QR Code</h3>
+                    <div class="flex gap-2 mb-3"><input type="number" id="qrAmount" placeholder="Amount"
+                            class="flex-1 p-2 border rounded-xl"><input type="text" id="qrDesc"
+                            placeholder="Description" class="flex-1 p-2 border rounded-xl"></div>
+                    <button onclick="generateQR()" class="w-full bg-purple-500 text-white py-2 rounded-xl">Generate
+                        QR</button>
+                    <div id="qrResult" class="mt-4 hidden text-center">
+                        <div id="qrCodeImage" class="flex justify-center"></div><button onclick="downloadQR()"
+                            class="mt-2 text-indigo-600 text-sm">Download QR</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Analytics Tab -->
+        <div id="analyticsTab" class="tab-content hidden">
+            <div class="grid md:grid-cols-2 gap-6">
+                <div class="bg-white rounded-2xl shadow-xl p-6">
+                    <h3 class="font-bold text-lg mb-4">📊 Category Breakdown</h3><canvas id="categoryChart"
+                        height="200"></canvas>
+                </div>
+                <div class="bg-white rounded-2xl shadow-xl p-6">
+                    <h3 class="font-bold text-lg mb-4">💡 AI Spending Insights</h3>
+                    <div id="insightsList" class="space-y-3">
+                        <p class="text-gray-500 text-center py-4">Loading insights...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- History Tab -->
+        <div id="historyTab" class="tab-content hidden">
+            <div class="bg-white rounded-2xl shadow-xl p-6">
+                <div class="flex gap-2 mb-4"><input type="text" id="searchHistory" placeholder="Search transactions..."
+                        class="flex-1 p-2 border rounded-xl"><select id="filterType" class="p-2 border rounded-xl">
+                        <option value="all">All</option>
+                        <option value="payment">Payments</option>
+                        <option value="sent">Sent</option>
+                        <option value="received">Received</option>
+                        <option value="topup">Top-ups</option>
+                    </select><button onclick="exportTransactions()"
+                        class="bg-green-600 text-white px-4 py-2 rounded-lg text-sm">📊 Export</button></div>
+                <div id="historyList" class="space-y-3 max-h-96 overflow-y-auto">
+                    <p class="text-gray-500 text-center py-8">No transactions yet</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- M-Pesa Top-Up Modal -->
+    <div id="topupModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6">
+            <h3 class="text-xl font-bold mb-4">💸 Top Up Wallet</h3>
+            <label class="block text-sm font-semibold mb-2">Amount (KES)</label>
+            <input type="number" id="topupAmount" placeholder="e.g., 500" class="w-full p-3 border rounded-xl mb-4">
+            <label class="block text-sm font-semibold mb-2">M-Pesa Phone Number</label>
+            <input type="tel" id="topupPhone" placeholder="e.g., 0712345678" class="w-full p-3 border rounded-xl mb-4">
+            <button onclick="mpesaTopUp()" class="w-full bg-green-600 text-white py-3 rounded-xl font-bold">💳 Pay with
+                M-Pesa</button>
+            <button onclick="closeTopUpModal()" class="w-full mt-2 text-gray-500 py-2">Cancel</button>
+        </div>
+    </div>
+
+    <div id="withdrawModal"
+        class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6">
+            <h3 class="text-xl font-bold mb-4">🏧 Withdraw Money</h3>
+            <input type="number" id="withdrawAmount" placeholder="Amount" class="w-full p-3 border rounded-xl mb-4">
+            <button onclick="processWithdraw()" class="w-full bg-red-600 text-white py-3 rounded-xl font-bold">Request
+                Withdrawal</button>
+            <button onclick="closeWithdrawModal()" class="w-full mt-2 text-gray-500 py-2">Cancel</button>
+        </div>
+    </div>
+
+    <!-- Spending Limit Modal -->
+    <div id="spendingLimitModal"
+        class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6">
+            <h3 class="text-xl font-bold mb-4">💰 Daily Spending Limit</h3>
+            <label class="block text-sm font-semibold mb-2">Daily Limit (KES)</label>
+            <input type="number" id="dailyLimit" placeholder="0 = no limit" class="w-full p-3 border rounded-xl mb-4">
+            <button onclick="setSpendingLimit()" class="w-full bg-indigo-600 text-white py-3 rounded-xl font-bold">Save
+                Limit</button>
+            <button onclick="closeSpendingLimitModal()" class="w-full mt-2 text-gray-500 py-2">Cancel</button>
+        </div>
+    </div>
+
+    <!-- ID Card Modal -->
+    <div id="idCardModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6">
+            <h3 class="text-xl font-bold mb-4">🪪 Student ID Card</h3>
+            <div class="id-card p-6 text-white text-center" id="idCard">
+                <div class="w-20 h-20 bg-white rounded-full mx-auto mb-3 flex items-center justify-center text-4xl">
+                    👨‍🎓</div>
+                <p class="font-bold text-xl" id="idCardName">Student Name</p>
+                <p class="text-sm opacity-90" id="idCardStudentId">STU001</p>
+                <p class="text-sm opacity-90 mt-2" id="idCardEmail">student@school.com</p>
+                <div class="mt-3 p-2 bg-white/20 rounded-lg">
+                    <p class="text-xs">Valid until: Dec 2025</p>
+                </div>
+                <div class="mt-2"><span class="text-xs bg-white/20 px-2 py-1 rounded">Pulse Campus Wallet</span></div>
+            </div>
+            <div class="flex gap-2 mt-4"><button onclick="downloadIdCard()"
+                    class="flex-1 bg-indigo-600 text-white py-2 rounded-lg">📥 Download</button><button
+                    onclick="printIdCard()" class="flex-1 bg-green-600 text-white py-2 rounded-lg">🖨️ Print</button>
+            </div>
+            <button onclick="closeIdCardModal()" class="w-full mt-3 text-gray-500 py-2">Close</button>
+        </div>
+    </div>
+
+    <!-- Profile Modal -->
+    <div id="profileModal"
+        class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6">
+            <div class="text-center mb-4">
+                <div
+                    class="w-20 h-20 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-full flex items-center justify-center mx-auto text-4xl">
+                    👤</div>
+                <h2 class="text-2xl font-bold mt-3" id="profileModalName">Student</h2>
+                <p class="text-gray-500" id="profileModalEmail">email@school.com</p>
+            </div>
+            <div class="space-y-3">
+                <div class="flex justify-between py-2 border-b"><span class="text-gray-600">Student ID:</span><span
+                        id="profileModalStudentId">---</span></div>
+                <div class="flex justify-between py-2 border-b"><span class="text-gray-600">Member Since:</span><span
+                        id="profileModalMemberSince">2024</span></div>
+                <div class="flex justify-between py-2 border-b"><span class="text-gray-600">Total Spent:</span><span
+                        id="profileModalTotalSpent">KES 0</span></div>
+                <div class="flex justify-between py-2 border-b"><span class="text-gray-600">Reward Points:</span><span
+                        id="profileModalPoints">0</span></div>
+            </div>
+            <button onclick="closeProfileModal()" class="w-full mt-6 bg-gray-200 py-2 rounded-xl">Close</button>
+        </div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settingsModal"
+        class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6">
+            <h2 class="text-2xl font-bold mb-4">⚙️ Settings</h2>
+            <div class="space-y-4">
+                <div class="flex justify-between items-center">
+                    <div>
+                        <p class="font-semibold">Dark Mode</p>
+                        <p class="text-xs text-gray-500">Toggle theme</p>
+                    </div><label class="toggle-switch"><input type="checkbox" id="darkModeToggle"
+                            onchange="toggleDarkMode()"><span class="toggle-slider"></span></label>
+                </div>
+                <div class="flex justify-between items-center">
+                    <div>
+                        <p class="font-semibold">Email Notifications</p>
+                        <p class="text-xs text-gray-500">Transaction alerts</p>
+                    </div><label class="toggle-switch"><input type="checkbox" id="emailNotifications" checked><span
+                            class="toggle-slider"></span></label>
+                </div>
+                <div class="flex justify-between items-center">
+                    <div>
+                        <p class="font-semibold">Push Notifications</p>
+                        <p class="text-xs text-gray-500">Real-time updates</p>
+                    </div><label class="toggle-switch"><input type="checkbox" id="pushNotifications" checked><span
+                            class="toggle-slider"></span></label>
+                </div>
+            </div>
+            <button onclick="saveSettings()" class="w-full mt-6 bg-indigo-600 text-white py-2 rounded-xl">Save</button>
+            <button onclick="closeSettingsModal()" class="w-full mt-2 text-gray-500 py-2">Cancel</button>
+        </div>
+    </div>
+
+    <!-- Security Modal -->
+    <div id="securityModal"
+        class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div class="bg-white rounded-2xl max-w-md w-full p-6">
+            <h2 class="text-2xl font-bold mb-4">🔒 Security</h2>
+            <div class="space-y-4">
+                <div><label class="font-semibold">Change Password</label><input type="password" id="currentPassword"
+                        placeholder="Current" class="w-full p-2 border rounded-xl mt-1 mb-2"><input type="password"
+                        id="newPassword" placeholder="New" class="w-full p-2 border rounded-xl mb-2"><input
+                        type="password" id="confirmPassword" placeholder="Confirm" class="w-full p-2 border rounded-xl">
+                </div>
+                <div class="border-t pt-4">
+                    <p class="font-semibold mb-2">Two-Factor Authentication</p>
+                    <div class="flex justify-between"><span class="text-sm text-gray-500">Add extra
+                            security</span><label class="toggle-switch"><input type="checkbox"
+                                id="twoFactorToggle"><span class="toggle-slider"></span></label></div>
+                </div>
+            </div>
+            <button onclick="updatePassword()"
+                class="w-full mt-6 bg-indigo-600 text-white py-2 rounded-xl">Update</button>
+            <button onclick="closeSecurityModal()" class="w-full mt-2 text-gray-500 py-2">Cancel</button>
+        </div>
+    </div>
+
+    <script>
+        // ==================== BACKEND API URL ====================
+        const API_URL = 'https://pulse-api-e30b.onrender.com/api';
+
+        // ==================== DATA STORAGE ====================
+        let currentToken = localStorage.getItem('token');
+        let currentUser = JSON.parse(localStorage.getItem('user') || '{"name":"John Doe","studentId":"STU001","email":"student@school.edu"}');
+        let balance = 0;
+        let transactions = JSON.parse(localStorage.getItem('transactions') || '[]');
+        let mealOrders = JSON.parse(localStorage.getItem('mealOrders') || '[]');
+        let borrowedBooks = JSON.parse(localStorage.getItem('borrowedBooks') || '[]');
+        let libraryFine = parseFloat(localStorage.getItem('libraryFine') || '0');
+        let gymBookings = JSON.parse(localStorage.getItem('gymBookings') || '[]');
+        let laundryOrders = JSON.parse(localStorage.getItem('laundryOrders') || '[]');
+        let transportBookings = JSON.parse(localStorage.getItem('transportBookings') || '[]');
+        let lostItems = JSON.parse(localStorage.getItem('lostItems') || '[]');
+        let dailyLimit = parseFloat(localStorage.getItem('dailyLimit') || '0');
+        let notices = [
+            { id: 1, title: '📢 Mid-Semester Exams', date: '2024-05-15', content: 'Mid-semester exams will begin on May 20th. Check your timetable.' },
+            { id: 2, title: '🏫 Library Hours Extended', date: '2024-05-10', content: 'Library will be open until 10 PM during exam period.' },
+            { id: 3, title: '🎉 Freshers Party', date: '2024-05-05', content: 'Welcome party for new students on Saturday at 6 PM in Main Hall.' },
+            { id: 4, title: '💰 Scholarship Applications Open', date: '2024-05-01', content: 'Apply for academic scholarships by May 30th.' },
+            { id: 5, title: '🏋️ Gym Renovation Complete', date: '2024-04-28', content: 'New equipment installed! Book your slots now.' }
+        ];
+        let books = [
+            { id: 1, title: 'JavaScript: The Good Parts', author: 'Douglas Crockford', available: true, fine: 0.50 },
+            { id: 2, title: 'Clean Code', author: 'Robert Martin', available: true, fine: 0.50 },
+            { id: 3, title: 'The Pragmatic Programmer', author: 'David Thomas', available: false, fine: 0.50 },
+            { id: 4, title: 'Introduction to Algorithms', author: 'CLRS', available: true, fine: 0.50 },
+            { id: 5, title: 'Design Patterns', author: 'GoF', available: true, fine: 0.50 },
+            { id: 6, title: 'Database Systems', author: 'Connolly', available: true, fine: 0.50 }
+        ];
+        let products = [
+            { id: 1, name: '🍳 Breakfast Combo', price: 3.50, category: 'cafeteria', description: 'Eggs, toast, coffee, juice' },
+            { id: 2, name: '🍝 Spaghetti Bolognese', price: 5.00, category: 'cafeteria', description: 'Classic pasta with meat sauce' },
+            { id: 3, name: '🍛 Rice & Beans', price: 3.00, category: 'cafeteria', description: 'Steamed rice with beans' },
+            { id: 4, name: '🥗 Grilled Chicken Salad', price: 4.50, category: 'cafeteria', description: 'Fresh greens with grilled chicken' },
+            { id: 5, name: '🍜 Chicken Noodles', price: 4.00, category: 'cafeteria', description: 'Asian-style noodles with chicken' },
+            { id: 6, name: '🥘 Beef Stew', price: 5.50, category: 'cafeteria', description: 'Tender beef with vegetables' },
+            { id: 7, name: '🍕 Pizza Slice', price: 3.00, category: 'cafeteria', description: 'Pepperoni or cheese' },
+            { id: 8, name: '🌯 Chicken Wrap', price: 4.00, category: 'cafeteria', description: 'With ranch dressing' },
+            { id: 9, name: '🥪 Club Sandwich', price: 4.50, category: 'cafeteria', description: 'Triple-layer with fries' },
+            { id: 10, name: '🍲 Soup of the Day', price: 2.50, category: 'cafeteria', description: 'With bread roll' },
+            { id: 11, name: '🐟 Grilled Fish', price: 6.00, category: 'cafeteria', description: 'With ugali/salad' },
+            { id: 12, name: '🍚 Pilau Rice', price: 4.00, category: 'cafeteria', description: 'Spiced rice with meat' },
+            { id: 13, name: '🥔 Mashed Potatoes', price: 2.00, category: 'cafeteria', description: 'With gravy' },
+            { id: 14, name: '🥦 Vegetable Stir-fry', price: 3.50, category: 'cafeteria', description: 'Fresh mixed vegetables' },
+            { id: 15, name: '🍰 Chocolate Cake', price: 2.00, category: 'cafeteria', description: 'Moist chocolate slice' },
+            { id: 16, name: '🍔 Beef Burger', price: 3.00, category: 'canteen', description: 'With lettuce, tomato, cheese' },
+            { id: 17, name: '🍟 French Fries', price: 1.50, category: 'canteen', description: 'Crispy golden fries' },
+            { id: 18, name: '🌮 Beef Taco', price: 2.00, category: 'canteen', description: 'With salsa and cheese' },
+            { id: 19, name: '🥪 Chicken Sandwich', price: 2.50, category: 'canteen', description: 'Grilled chicken with lettuce' },
+            { id: 20, name: '🌭 Hot Dog', price: 2.00, category: 'canteen', description: 'With ketchup and mustard' },
+            { id: 21, name: '🥙 Falafel Wrap', price: 3.00, category: 'canteen', description: 'Vegetarian option' },
+            { id: 22, name: '🧀 Cheese Burger', price: 3.50, category: 'canteen', description: 'Double cheese patty' },
+            { id: 23, name: '🍗 Chicken Wings (6pcs)', price: 4.00, category: 'canteen', description: 'Spicy or BBQ' },
+            { id: 24, name: '🥨 Pretzel', price: 1.50, category: 'canteen', description: 'Buttered salted pretzel' },
+            { id: 25, name: '🍕 Personal Pizza', price: 4.00, category: 'canteen', description: '6-inch personal pizza' },
+            { id: 26, name: '🥗 Caesar Salad', price: 3.00, category: 'canteen', description: 'With croutons and dressing' },
+            { id: 27, name: '🍦 Ice Cream', price: 1.00, category: 'canteen', description: 'Vanilla, chocolate, strawberry' },
+            { id: 28, name: '🥤 Milkshake', price: 2.50, category: 'canteen', description: 'Chocolate or strawberry' },
+            { id: 29, name: '🍩 Donut', price: 0.80, category: 'canteen', description: 'Glazed or chocolate' },
+            { id: 30, name: '🥧 Meat Pie', price: 2.00, category: 'canteen', description: 'Beef or chicken' },
+            { id: 31, name: '💧 Bottled Water', price: 0.50, category: 'minimart', description: '500ml purified water' },
+            { id: 32, name: '🥤 Soda', price: 1.00, category: 'minimart', description: 'Coke, Sprite, Fanta' },
+            { id: 33, name: '🧃 Juice Box', price: 1.00, category: 'minimart', description: 'Mango, orange, apple' },
+            { id: 34, name: '☕ Energy Drink', price: 2.00, category: 'minimart', description: 'Boost your energy' },
+            { id: 35, name: '🍫 Chocolate Bar', price: 1.00, category: 'minimart', description: 'Various brands' },
+            { id: 36, name: '🍪 Cookies', price: 0.80, category: 'minimart', description: 'Chocolate chip' },
+            { id: 37, name: '🥜 Chips', price: 0.80, category: 'minimart', description: 'Potato chips' },
+            { id: 38, name: '🍬 Candy Pack', price: 0.50, category: 'minimart', description: 'Assorted candies' },
+            { id: 39, name: '🍿 Popcorn', price: 1.00, category: 'minimart', description: 'Buttered popcorn' },
+            { id: 40, name: '🥨 Trail Mix', price: 1.50, category: 'minimart', description: 'Nuts and dried fruits' },
+            { id: 41, name: '🍞 Bread', price: 1.00, category: 'minimart', description: 'Fresh loaf' },
+            { id: 42, name: '🥛 Yogurt', price: 1.00, category: 'minimart', description: 'Strawberry or plain' },
+            { id: 43, name: '🍎 Fresh Fruit', price: 0.80, category: 'minimart', description: 'Apple, banana, orange' },
+            { id: 44, name: '🥪 Pre-made Sandwich', price: 2.50, category: 'minimart', description: 'Ready to eat' },
+            { id: 45, name: '☕ Instant Coffee', price: 0.50, category: 'minimart', description: '3-in-1 sachet' },
+            { id: 46, name: '📓 Notebook', price: 2.00, category: 'stationery', description: '100 pages, A4' },
+            { id: 47, name: '✏️ Pen Pack', price: 1.00, category: 'stationery', description: 'Pack of 5 pens' },
+            { id: 48, name: '📏 Ruler Set', price: 1.50, category: 'stationery', description: 'Ruler, triangle, protractor' },
+            { id: 49, name: '🎨 Color Pencils', price: 3.00, category: 'stationery', description: '12 colors' },
+            { id: 50, name: '📚 Textbook', price: 15.00, category: 'stationery', description: 'Various subjects' },
+            { id: 51, name: '📎 Stapler', price: 2.50, category: 'stationery', description: 'With staples' },
+            { id: 52, name: '✂️ Scissors', price: 1.50, category: 'stationery', description: 'Student scissors' },
+            { id: 53, name: '📒 Binder', price: 3.00, category: 'stationery', description: '1-inch binder' },
+            { id: 54, name: '🗂️ Folder', price: 1.00, category: 'stationery', description: 'Poly folder' },
+            { id: 55, name: '📝 Sticky Notes', price: 1.00, category: 'stationery', description: 'Pack of 100' },
+            { id: 56, name: '📏 Geometry Set', price: 4.00, category: 'stationery', description: 'Compass, divider, etc' },
+            { id: 57, name: '🎒 Backpack', price: 25.00, category: 'stationery', description: 'School bag' },
+            { id: 58, name: '📖 Dictionary', price: 10.00, category: 'stationery', description: 'English dictionary' },
+            { id: 59, name: '🧮 Calculator', price: 12.00, category: 'stationery', description: 'Scientific calculator' },
+            { id: 60, name: '🎨 Watercolors', price: 4.00, category: 'stationery', description: '12-color set' },
+            { id: 61, name: '🖨️ Printing (per page)', price: 0.10, category: 'services', description: 'Black & white' },
+            { id: 62, name: '📸 Color Printing', price: 0.30, category: 'services', description: 'Color per page' },
+            { id: 63, name: '📋 Photocopy', price: 0.05, category: 'services', description: 'Per page' },
+            { id: 64, name: '📦 Lamination', price: 1.00, category: 'services', description: 'Per A4 sheet' },
+            { id: 65, name: '🔋 Phone Charging', price: 0.50, category: 'services', description: '30 minutes' },
+            { id: 66, name: '💻 Computer Access', price: 1.00, category: 'services', description: 'Per hour' },
+            { id: 67, name: '📄 Binding', price: 2.00, category: 'services', description: 'Spiral binding' },
+            { id: 68, name: '🖼️ Poster Printing', price: 5.00, category: 'services', description: 'A1 size' },
+            { id: 69, name: '📷 Passport Photos', price: 2.00, category: 'services', description: '4 copies' },
+            { id: 70, name: '🔧 Laptop Repair', price: 15.00, category: 'services', description: 'Diagnostic + basic fix' },
+            { id: 71, name: '📱 Screen Protector', price: 3.00, category: 'services', description: 'Installation included' },
+            { id: 72, name: '🎧 Headphone Repair', price: 5.00, category: 'services', description: 'Soldering service' }
+        ];
+        let currentMarketFilter = 'all';
+        let selectedGymSlot = null;
+        let cardNumberVisible = false;
+        let fullCardNumber = '';
+        let spendingChart = null;
+        let categoryChart = null;
+
+        // ==================== M-PESA TOP-UP FUNCTION ====================
+        async function mpesaTopUp() {
+            const amount = document.getElementById('topupAmount').value;
+            const phone = document.getElementById('topupPhone').value;
+
+            if (!amount || amount <= 0) { alert('Please enter a valid amount'); return; }
+            if (!phone) { alert('Please enter your M-Pesa phone number'); return; }
+            if (!currentToken) { alert('Please login again'); window.location.href = 'login.html'; return; }
+
+            showLoading(true);
+            try {
+                const response = await fetch(`${API_URL}/mpesa/stk-push`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${currentToken}`, 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ amount: parseFloat(amount), phoneNumber: phone, productType: 'topup' })
+                });
+                const data = await response.json();
+                if (data.success) {
+                    alert(`✅ STK Push sent to ${phone}!\n\nPlease check your phone and enter your M-Pesa PIN to complete payment.`);
+                    pollPaymentStatus(data.checkoutRequestId);
+                } else { alert(`❌ Payment failed: ${data.error || data.message}`); }
+            } catch (error) { alert('Error: ' + error.message); }
+            finally { showLoading(false); }
+        }
+
+        async function pollPaymentStatus(checkoutRequestId) {
+            let attempts = 0;
+            const interval = setInterval(async () => {
+                attempts++;
+                try {
+                    const response = await fetch(`${API_URL}/mpesa/status/${checkoutRequestId}`, {
+                        headers: { 'Authorization': `Bearer ${currentToken}` }
+                    });
+                    const data = await response.json();
+                    if (data.status === 'completed') {
+                        clearInterval(interval);
+                        alert('✅ Payment successful! Your wallet has been topped up.');
+                        await loadBalance();
+                        await loadTransactions();
+                        closeTopUpModal();
+                    } else if (data.status === 'failed') {
+                        clearInterval(interval);
+                        alert('❌ Payment failed. Please try again.');
+                    } else if (attempts >= 30) {
+                        clearInterval(interval);
+                        alert('⏰ Payment pending. Check your M-Pesa messages for status.');
+                    }
+                } catch (error) { console.error('Status check error:', error); }
+            }, 2000);
+        }
+
+        function showLoading(show) {
+            let overlay = document.getElementById('loadingOverlay');
+            if (!overlay) {
+                const div = document.createElement('div');
+                div.id = 'loadingOverlay';
+                div.className = 'hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+                div.innerHTML = '<div class="bg-white rounded-xl p-6 text-center"><div class="loader mx-auto mb-3"></div><p>Processing...</p></div>';
+                document.body.appendChild(div);
+                overlay = div;
+            }
+            show ? overlay.classList.remove('hidden') : overlay.classList.add('hidden');
+        }
+
+        // ==================== INITIALIZATION ====================
+        async function init() {
+            if (!currentToken) { window.location.href = 'login.html'; return; }
+
+            document.getElementById('welcomeName').innerText = currentUser.name || currentUser.email?.split('@')[0] || 'Student';
+            document.getElementById('studentIdDisplay').innerText = currentUser.studentId || 'STU001';
+            document.getElementById('cardHolder').innerText = currentUser.name || currentUser.email?.split('@')[0] || 'Student';
+            document.getElementById('cardStudentId').innerText = currentUser.studentId || 'STU001';
+            fullCardNumber = Math.floor(Math.random() * 9000 + 1000) + '' + Math.floor(Math.random() * 9000 + 1000) + '' + Math.floor(Math.random() * 9000 + 1000) + '' + Math.floor(Math.random() * 9000 + 1000);
+            document.getElementById('cardNumberDisplay').innerText = '**** **** **** ' + fullCardNumber.slice(-4);
+            document.getElementById('cardCVV').innerText = Math.floor(Math.random() * 900 + 100);
+            document.getElementById('cardExpiry').innerText = '12/' + (new Date().getFullYear() + 3).toString().slice(-2);
+            document.getElementById('profileName').innerText = currentUser.name || currentUser.email?.split('@')[0] || 'Student';
+            document.getElementById('profileEmail').innerText = currentUser.email || 'student@school.com';
+            document.getElementById('profileModalName').innerText = currentUser.name || currentUser.email?.split('@')[0] || 'Student';
+            document.getElementById('profileModalEmail').innerText = currentUser.email || 'student@school.com';
+            document.getElementById('profileModalStudentId').innerText = currentUser.studentId || 'STU001';
+            document.getElementById('idCardName').innerText = currentUser.name || currentUser.email?.split('@')[0] || 'Student';
+            document.getElementById('idCardStudentId').innerText = currentUser.studentId || 'STU001';
+            document.getElementById('idCardEmail').innerText = currentUser.email || 'student@school.com';
+
+            await loadBalance();
+            await loadDashboardStats();
+            await loadSpendingChart();
+            await loadTransactions();
+            await loadProducts();
+            loadMealCalendar();
+            loadBooks();
+            loadGymBookings();
+            loadLaundryOrders();
+            loadTransportBookings();
+            loadLostItems();
+            loadNotices();
+            updateNextClass();
+            loadCategoryChart();
+            loadInsights();
+
+            if (localStorage.getItem('darkMode') === 'true') {
+                document.body.classList.add('dark-mode');
+                document.getElementById('darkModeIcon').textContent = '☀️';
+            }
+        }
+
+        async function loadBalance() {
+            try {
+                const response = await fetch(`${API_URL}/wallet/balance`, {
+                    headers: { 'Authorization': `Bearer ${currentToken}` }
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    balance = data.balance;
+                } else if (response.status === 401) {
+                    localStorage.removeItem('token');
+                    window.location.href = 'login.html';
+                    return;
+                }
+            } catch (error) { console.error('Balance error:', error); }
+            updateBalanceDisplay();
+        }
+
+        function updateBalanceDisplay() {
+            document.getElementById('balance').innerText = `KES ${balance.toFixed(2)}`;
+            document.getElementById('balanceLarge').innerText = `KES ${balance.toFixed(2)}`;
+            document.getElementById('walletBalance').innerText = `KES ${balance.toFixed(2)}`;
+            localStorage.setItem('balance', balance);
+        }
+
+        function addTransaction(type, amount, description, toFrom = '') {
+            const transaction = { id: Date.now(), type, amount, description, toFrom, date: new Date().toISOString(), timestamp: new Date().toLocaleString() };
+            transactions.unshift(transaction);
+            localStorage.setItem('transactions', JSON.stringify(transactions));
+            loadTransactions();
+            loadDashboardStats();
+        }
+
+        function showTopUpModal() { document.getElementById('topupModal').classList.remove('hidden'); }
+        function closeTopUpModal() { document.getElementById('topupModal').classList.add('hidden'); document.getElementById('topupAmount').value = ''; document.getElementById('topupPhone').value = ''; }
+        function showWithdrawModal() { document.getElementById('withdrawModal').classList.remove('hidden'); }
+        function closeWithdrawModal() { document.getElementById('withdrawModal').classList.add('hidden'); document.getElementById('withdrawAmount').value = ''; }
+
+        function processWithdraw() {
+            const amount = parseFloat(document.getElementById('withdrawAmount').value);
+            if (!amount || amount <= 0) { alert('Please enter a valid amount'); return; }
+            if (amount > balance) { alert(`Insufficient balance! You have KES ${balance.toFixed(2)}`); return; }
+            balance -= amount;
+            updateBalanceDisplay();
+            addTransaction('withdraw', -amount, 'Withdrawal request', 'Self');
+            alert(`✅ Withdrawal request for KES ${amount.toFixed(2)} submitted. Please collect from admin.`);
+            closeWithdrawModal();
+        }
+
+        function sendMoney() {
+            const recipient = document.getElementById('sendRecipient').value;
+            const amount = parseFloat(document.getElementById('sendAmount').value);
+            const description = document.getElementById('sendDescription').value || 'Transfer';
+            if (!recipient || !amount) { alert('Please fill all fields'); return; }
+            if (amount > balance) { alert(`Insufficient balance! You have KES ${balance.toFixed(2)}`); return; }
+            balance -= amount;
+            updateBalanceDisplay();
+            addTransaction('sent', -amount, description, recipient);
+            alert(`✅ Sent KES ${amount.toFixed(2)} to ${recipient}!`);
+            document.getElementById('sendRecipient').value = '';
+            document.getElementById('sendAmount').value = '';
+            document.getElementById('sendDescription').value = '';
+        }
+
+        function loadProducts() { renderProducts(); }
+        function getIcon(category) { const icons = { cafeteria: '🍽️', canteen: '🥪', minimart: '🏪', stationery: '📚', services: '🔧' }; return icons[category] || '🛒'; }
+
+        function renderProducts() {
+            let filtered = products;
+            if (currentMarketFilter !== 'all') filtered = products.filter(p => p.category === currentMarketFilter);
+            const container = document.getElementById('productsGrid');
+            if (filtered.length === 0) { container.innerHTML = '<div class="col-span-full text-center py-8 text-gray-500">No products in this category</div>'; return; }
+            container.innerHTML = filtered.map(p => `<div class="bg-white rounded-xl shadow-md overflow-hidden"><div class="h-24 bg-gradient-to-r from-indigo-500 to-purple-500 flex items-center justify-center"><span class="text-4xl">${getIcon(p.category)}</span></div><div class="p-3"><h3 class="font-bold">${p.name}</h3><p class="text-gray-600 text-sm">${p.description}</p><p class="text-indigo-600 font-bold mt-1">KES ${p.price}</p><button onclick="buyProduct(${p.id}, ${p.price}, '${p.name}')" class="mt-2 w-full bg-indigo-600 text-white py-1 rounded-lg text-sm hover:bg-indigo-700">Buy Now</button></div></div>`).join('');
+        }
+
+        function filterMarket(category) {
+            currentMarketFilter = category;
+            document.querySelectorAll('.market-filter').forEach(btn => { btn.classList.remove('bg-indigo-600', 'text-white'); btn.classList.add('bg-white'); });
+            event.target.classList.remove('bg-white'); event.target.classList.add('bg-indigo-600', 'text-white');
+            renderProducts();
+        }
+
+        function buyProduct(productId, price, name) {
+            if (price > balance) { alert(`Insufficient balance! You have KES ${balance.toFixed(2)}`); return; }
+            balance -= price;
+            updateBalanceDisplay();
+            addTransaction('payment', -price, `Purchased: ${name}`, 'Marketplace');
+            alert(`✅ Purchased ${name} for KES ${price.toFixed(2)}!`);
+        }
+
+        function orderMeal(day) { const price = 5; if (price > balance) { alert(`Insufficient balance! You have KES ${balance.toFixed(2)}`); return; } balance -= price; updateBalanceDisplay(); const existing = mealOrders.findIndex(o => o.day === day); if (existing !== -1) mealOrders.splice(existing, 1); mealOrders.push({ day, meal: 'Lunch Combo', price, date: new Date().toISOString() }); localStorage.setItem('mealOrders', JSON.stringify(mealOrders)); addTransaction('payment', -price, `Meal order for ${day}`, 'Cafeteria'); loadMealCalendar(); alert(`✅ Ordered lunch for ${day}!`); }
+        function orderFullWeek() { const total = 30; if (total > balance) { alert(`Insufficient balance! You have KES ${balance.toFixed(2)}`); return; } balance -= total; updateBalanceDisplay(); const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']; days.forEach(day => { const existing = mealOrders.findIndex(o => o.day === day); if (existing !== -1) mealOrders.splice(existing, 1); mealOrders.push({ day, meal: 'Lunch Combo', price: 5, date: new Date().toISOString() }); }); localStorage.setItem('mealOrders', JSON.stringify(mealOrders)); addTransaction('payment', -total, 'Full week meal plan', 'Cafeteria'); loadMealCalendar(); alert(`✅ Ordered full week meal plan!`); }
+        function loadMealCalendar() { const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']; days.forEach(day => { const element = document.getElementById(`meal${day}`); if (element) { const ordered = mealOrders.find(o => o.day === day); element.innerHTML = ordered ? `✅ ${ordered.meal}<br><span class="text-xs">KES ${ordered.price}</span>` : 'Not ordered'; } }); }
+
+        function loadBooks() { const container = document.getElementById('booksList'); container.innerHTML = books.map(b => `<div class="book-card flex justify-between items-center p-3 bg-gray-50 rounded-lg"><div><p class="font-semibold">${b.title}</p><p class="text-xs text-gray-500">${b.author}</p></div><div>${b.available ? `<button onclick="borrowBook(${b.id})" class="bg-green-500 text-white px-3 py-1 rounded text-sm">Borrow</button>` : '<span class="text-red-500 text-sm">Borrowed</span>'}</div></div>`).join(''); document.getElementById('libraryFine').innerText = libraryFine.toFixed(2); }
+        function borrowBook(bookId) { const book = books.find(b => b.id === bookId); if (!book || !book.available) { alert('Book not available'); return; } if (borrowedBooks.length >= 3) { alert('You can only borrow 3 books at a time'); return; } book.available = false; borrowedBooks.push({ id: book.id, title: book.title, author: book.author, borrowDate: new Date().toISOString(), dueDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString() }); localStorage.setItem('borrowedBooks', JSON.stringify(borrowedBooks)); loadBooks(); loadBorrowedBooks(); }
+        function loadBorrowedBooks() { const container = document.getElementById('borrowedBooks'); if (borrowedBooks.length === 0) { container.innerHTML = '<p class="text-gray-500 text-center py-4">No books borrowed</p>'; return; } container.innerHTML = borrowedBooks.map(b => `<div class="p-3 bg-gray-50 rounded-lg"><p class="font-semibold">${b.title}</p><p class="text-xs text-gray-500">Due: ${new Date(b.dueDate).toLocaleDateString()}</p><button onclick="returnBook('${b.id}')" class="mt-2 text-indigo-600 text-sm">Return</button></div>`).join(''); }
+        function returnBook(bookId) { const index = borrowedBooks.findIndex(b => b.id == bookId); if (index !== -1) borrowedBooks.splice(index, 1); const book = books.find(b => b.id == bookId); if (book) book.available = true; localStorage.setItem('borrowedBooks', JSON.stringify(borrowedBooks)); loadBooks(); loadBorrowedBooks(); }
+        function payLibraryFine() { if (libraryFine <= 0) { alert('No fines to pay'); return; } if (libraryFine > balance) { alert(`Insufficient balance! You have KES ${balance.toFixed(2)}`); return; } balance -= libraryFine; updateBalanceDisplay(); addTransaction('payment', -libraryFine, 'Library fine payment', 'Library'); alert(`✅ Paid library fine of KES ${libraryFine.toFixed(2)}`); libraryFine = 0; localStorage.setItem('libraryFine', libraryFine); document.getElementById('libraryFine').innerText = '0.00'; }
+
+        function selectGymSlot(element) { document.querySelectorAll('.booking-slot').forEach(slot => slot.classList.remove('selected', 'bg-indigo-600', 'text-white')); element.classList.add('selected', 'bg-indigo-600', 'text-white'); selectedGymSlot = element.getAttribute('data-slot'); }
+        function bookGymSlot() { if (!selectedGymSlot) { alert('Select a time slot'); return; } const price = 2; if (price > balance) { alert(`Insufficient balance! You have KES ${balance.toFixed(2)}`); return; } balance -= price; updateBalanceDisplay(); gymBookings.push({ slot: selectedGymSlot, date: new Date().toISOString(), price }); localStorage.setItem('gymBookings', JSON.stringify(gymBookings)); addTransaction('payment', -price, `Gym booking: ${selectedGymSlot}`, 'Gym'); document.querySelector(`.booking-slot[data-slot="${selectedGymSlot}"]`).classList.remove('available'); document.querySelector(`.booking-slot[data-slot="${selectedGymSlot}"]`).classList.add('booked'); document.querySelector(`.booking-slot[data-slot="${selectedGymSlot}"]`).innerHTML = `${selectedGymSlot}<br><span class="text-xs">Booked</span>`; loadGymBookings(); alert(`✅ Booked gym slot ${selectedGymSlot}!`); }
+        function loadGymBookings() { const container = document.getElementById('myGymBookings'); const myBookings = gymBookings.slice(-5).reverse(); if (myBookings.length === 0) { container.innerHTML = '<p class="text-gray-500 text-sm">No bookings yet</p>'; return; } container.innerHTML = myBookings.map(b => `<div class="p-2 bg-gray-50 rounded-lg"><p class="font-semibold text-sm">${b.slot}</p><p class="text-xs text-gray-500">${new Date(b.date).toLocaleDateString()}</p><p class="text-xs">KES ${b.price}</p></div>`).join(''); }
+
+        function requestLaundry() { const type = document.getElementById('laundryType').value; const date = document.getElementById('laundryDate').value; const instructions = document.getElementById('laundryInstructions').value; if (!date) { alert('Select pickup date'); return; } let price = type === 'wash' ? 5 : type === 'wash_iron' ? 8 : 12; if (price > balance) { alert(`Insufficient balance! You have KES ${balance.toFixed(2)}`); return; } balance -= price; updateBalanceDisplay(); laundryOrders.unshift({ id: Date.now(), type, date, instructions, price, status: 'pending', orderDate: new Date().toISOString() }); localStorage.setItem('laundryOrders', JSON.stringify(laundryOrders)); addTransaction('payment', -price, `Laundry service: ${type}`, 'Laundry'); loadLaundryOrders(); alert(`✅ Laundry request submitted! Total: KES ${price}`); document.getElementById('laundryDate').value = ''; document.getElementById('laundryInstructions').value = ''; }
+        function loadLaundryOrders() { const container = document.getElementById('myLaundryOrders'); if (laundryOrders.length === 0) { container.innerHTML = '<p class="text-gray-500 text-center">No orders yet</p>'; return; } container.innerHTML = laundryOrders.slice(0, 5).map(o => `<div class="p-2 bg-gray-50 rounded-lg"><p class="font-semibold text-sm">${o.type}</p><p class="text-xs">Pickup: ${new Date(o.date).toLocaleDateString()}</p><p class="text-xs">Status: ${o.status}</p><p class="text-xs font-bold">KES ${o.price}</p></div>`).join(''); }
+
+        function bookTransport() { const route = document.getElementById('transportRoute').value; const time = document.getElementById('transportTime').value; const passengers = parseInt(document.getElementById('transportPassengers').value); if (!time) { alert('Select departure time'); return; } let price = route === 'main' ? 2 : route === 'hostel' ? 1 : 15; price *= passengers; if (price > balance) { alert(`Insufficient balance! You have KES ${balance.toFixed(2)}`); return; } balance -= price; updateBalanceDisplay(); transportBookings.unshift({ id: Date.now(), route, time, passengers, price, status: 'confirmed', bookingDate: new Date().toISOString() }); localStorage.setItem('transportBookings', JSON.stringify(transportBookings)); addTransaction('payment', -price, `Shuttle booking: ${route}`, 'Transport'); loadTransportBookings(); alert(`✅ Shuttle booked! Total: KES ${price}`); document.getElementById('transportTime').value = ''; document.getElementById('transportPassengers').value = '1'; }
+        function loadTransportBookings() { const container = document.getElementById('myTransportBookings'); if (transportBookings.length === 0) { container.innerHTML = '<p class="text-gray-500 text-center">No bookings yet</p>'; return; } container.innerHTML = transportBookings.slice(0, 5).map(b => `<div class="p-2 bg-gray-50 rounded-lg"><p class="font-semibold text-sm">${b.route}</p><p class="text-xs">${new Date(b.time).toLocaleString()}</p><p class="text-xs">${b.passengers} passenger(s)</p><p class="text-xs font-bold">KES ${b.price}</p></div>`).join(''); }
+
+        function reportLostItem() { const name = document.getElementById('lostItemName').value; const desc = document.getElementById('lostItemDesc').value; const location = document.getElementById('lostLocation').value; const date = document.getElementById('lostDate').value; if (!name || !desc || !location || !date) { alert('Fill all fields'); return; } lostItems.unshift({ id: Date.now(), name, desc, location, date, status: 'lost', reportedDate: new Date().toISOString() }); localStorage.setItem('lostItems', JSON.stringify(lostItems)); loadLostItems(); alert(`✅ Lost item reported! We'll notify you if found.`); document.getElementById('lostItemName').value = ''; document.getElementById('lostItemDesc').value = ''; document.getElementById('lostLocation').value = ''; document.getElementById('lostDate').value = ''; }
+        function loadLostItems() { const container = document.getElementById('lostItemsList'); if (lostItems.length === 0) { container.innerHTML = '<p class="text-gray-500 text-center">No lost items reported</p>'; return; } container.innerHTML = lostItems.slice(0, 10).map(i => `<div class="p-3 bg-gray-50 rounded-lg"><p class="font-semibold">${i.name}</p><p class="text-xs">${i.desc}</p><p class="text-xs text-gray-500">Lost at: ${i.location} on ${new Date(i.date).toLocaleDateString()}</p><span class="text-xs text-yellow-600">Status: ${i.status}</span></div>`).join(''); }
+
+        function loadNotices() { const container = document.getElementById('noticesList'); container.innerHTML = notices.map(n => `<div class="notice-card p-4 bg-gray-50 rounded-xl"><div class="flex justify-between"><h3 class="font-bold">${n.title}</h3><span class="text-xs text-gray-500">${new Date(n.date).toLocaleDateString()}</span></div><p class="text-sm text-gray-600 mt-1">${n.content}</p></div>`).join(''); }
+
+        function updateNextClass() { const now = new Date(); const day = now.getDay(); const hour = now.getHours(); const classes = { 1: 'Mathematics (8:00 AM)', 2: 'Physics (10:00 AM)', 3: 'Biology (1:00 PM)', 4: 'Library (3:00 PM)' }; let nextClass = day >= 1 && day <= 5 ? classes[Math.ceil((hour + 2) / 2)] || 'No more classes today' : 'Weekend - No classes'; document.getElementById('nextClass').innerText = nextClass; }
+
+        function flipCard() { document.getElementById('flipCard').classList.toggle('flipped'); }
+        function toggleCardNumber() { cardNumberVisible = !cardNumberVisible; document.getElementById('cardNumberDisplay').innerText = cardNumberVisible ? fullCardNumber : '**** **** **** ' + fullCardNumber.slice(-4); }
+        function generateQR() { const amount = parseFloat(document.getElementById('qrAmount').value); const description = document.getElementById('qrDesc').value || 'Payment'; if (!amount) { alert('Enter amount'); return; } const qrData = JSON.stringify({ amount, description, studentId: currentUser.studentId, timestamp: Date.now() }); const qrDiv = document.getElementById('qrCodeImage'); qrDiv.innerHTML = ''; new QRCode(qrDiv, { text: qrData, width: 200, height: 200 }); document.getElementById('qrResult').classList.remove('hidden'); }
+        function downloadQR() { const img = document.querySelector('#qrCodeImage img'); if (img) { const link = document.createElement('a'); link.download = 'pulse-qr.png'; link.href = img.src; link.click(); } }
+
+        function showIdCardModal() { document.getElementById('idCardModal').classList.remove('hidden'); document.getElementById('profileDropdown').classList.add('hidden'); }
+        function closeIdCardModal() { document.getElementById('idCardModal').classList.add('hidden'); }
+        function downloadIdCard() { html2pdf().from(document.getElementById('idCard')).set({ filename: 'student_id_card.pdf' }).save(); }
+        function printIdCard() { const printContent = document.getElementById('idCard').outerHTML; const originalContent = document.body.innerHTML; document.body.innerHTML = printContent; window.print(); document.body.innerHTML = originalContent; location.reload(); }
+
+        function showSpendingLimitModal() { document.getElementById('spendingLimitModal').classList.remove('hidden'); document.getElementById('profileDropdown').classList.add('hidden'); document.getElementById('dailyLimit').value = dailyLimit; }
+        function closeSpendingLimitModal() { document.getElementById('spendingLimitModal').classList.add('hidden'); }
+        async function setSpendingLimit() {
+            const limit = parseFloat(document.getElementById('dailyLimit').value);
+            if (isNaN(limit)) { alert('Please enter a valid amount'); return; }
+            dailyLimit = limit;
+            localStorage.setItem('dailyLimit', limit);
+            alert(`Daily spending limit set to KES ${limit}`);
+            closeSpendingLimitModal();
+        }
+
+        async function exportTransactions() {
+            try {
+                const response = await fetch(`${API_URL}/wallet/export/excel`, {
+                    headers: { 'Authorization': `Bearer ${currentToken}` }
+                });
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `pulse_transactions_${new Date().toISOString().slice(0, 19)}.csv`;
+                a.click();
+                alert('Export started! Check your downloads folder.');
+            } catch (error) {
+                alert('Export failed: ' + error.message);
+            }
+        }
+
+        function loadCategoryChart() {
+            const ctx = document.getElementById('categoryChart').getContext('2d');
+            if (categoryChart) categoryChart.destroy();
+            categoryChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: { labels: ['Food', 'Transport', 'Shopping', 'Education', 'Entertainment', 'Other'], datasets: [{ data: [40, 15, 20, 10, 10, 5], backgroundColor: ['#667eea', '#48bb78', '#ed8936', '#f56565', '#9b59b6', '#a0aec0'] }] }
+            });
+        }
+
+        async function loadInsights() {
+            try {
+                const response = await fetch(`${API_URL}/wallet/analytics`, {
+                    headers: { 'Authorization': `Bearer ${currentToken}` }
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    const container = document.getElementById('insightsList');
+                    if (data.insights && data.insights.length > 0) {
+                        container.innerHTML = data.insights.map(i => `<div class="p-3 bg-blue-50 rounded-xl"><p class="text-sm">💡 ${i}</p></div>`).join('');
+                    } else {
+                        container.innerHTML = '<div class="p-3 bg-green-50 rounded-xl"><p class="text-sm">🎉 Great job! Your spending habits look healthy.</p></div>';
+                    }
+                }
+            } catch (error) { console.error('Insights error:', error); }
+        }
+
+        function loadDashboardStats() {
+            const totalSpent = transactions.filter(t => t.amount < 0).reduce((s, t) => s + Math.abs(t.amount), 0);
+            const transfers = transactions.filter(t => t.type === 'sent').length;
+            const points = Math.floor(totalSpent / 10);
+            document.getElementById('totalSpent').innerText = `KES ${totalSpent.toFixed(2)}`;
+            document.getElementById('totalTransfers').innerText = transfers;
+            document.getElementById('points').innerText = points;
+            document.getElementById('profileModalTotalSpent').innerText = `KES ${totalSpent.toFixed(2)}`;
+            document.getElementById('profileModalPoints').innerText = points;
+            const totalDeposits = transactions.filter(t => t.type === 'topup').reduce((s, t) => s + t.amount, 0);
+            const totalWithdrawals = transactions.filter(t => t.type === 'withdraw' || t.type === 'sent' || t.type === 'payment').reduce((s, t) => s + Math.abs(t.amount), 0);
+            document.getElementById('totalDeposits').innerText = `KES ${totalDeposits.toFixed(2)}`;
+            document.getElementById('totalWithdrawals').innerText = `KES ${totalWithdrawals.toFixed(2)}`;
+            document.getElementById('transactionCount').innerText = transactions.length;
+            const savingsProgressElem = document.getElementById('savingsProgress');
+            if (savingsProgressElem) savingsProgressElem.innerText = '0%';
+        }
+
+        function loadSpendingChart() {
+            const last7Days = [], spendingData = [];
+            for (let i = 6; i >= 0; i--) {
+                const date = new Date(); date.setDate(date.getDate() - i);
+                last7Days.push(date.toLocaleDateString('en-US', { weekday: 'short' }));
+                const daySpending = transactions.filter(t => { const txDate = new Date(t.date); return t.amount < 0 && txDate.toDateString() === date.toDateString(); }).reduce((s, t) => s + Math.abs(t.amount), 0);
+                spendingData.push(daySpending);
+            }
+            const ctx = document.getElementById('spendingChart').getContext('2d');
+            if (spendingChart) spendingChart.destroy();
+            spendingChart = new Chart(ctx, { type: 'line', data: { labels: last7Days, datasets: [{ label: 'Spending (KES)', data: spendingData, borderColor: '#667eea', backgroundColor: 'rgba(102,126,234,0.1)', tension: 0.4, fill: true }] } });
+        }
+
+        function loadTransactions() {
+            const container = document.getElementById('historyList');
+            const recentContainer = document.getElementById('recentTransactions');
+            if (transactions.length === 0) { container.innerHTML = '<p class="text-gray-500 text-center py-8">No transactions yet</p>'; recentContainer.innerHTML = '<p class="text-gray-500 text-center py-4">No transactions yet</p>'; return; }
+            container.innerHTML = transactions.map(t => `<div class="flex justify-between items-center p-3 bg-gray-50 rounded-xl"><div><p class="font-semibold text-sm">${t.type.toUpperCase()}</p><p class="text-xs text-gray-500">${new Date(t.date).toLocaleString()}</p><p class="text-xs text-gray-400">${t.description}</p><p class="text-xs text-gray-400">${t.toFrom ? `To/From: ${t.toFrom}` : ''}</p></div><p class="${t.amount > 0 ? 'text-green-600' : 'text-red-600'} font-bold">${t.amount > 0 ? '+' : ''}KES ${Math.abs(t.amount).toFixed(2)}</p></div>`).join('');
+            recentContainer.innerHTML = transactions.slice(0, 5).map(t => `<div class="flex justify-between items-center p-3 bg-gray-50 rounded-xl"><div><p class="font-semibold text-sm">${t.type.toUpperCase()}</p><p class="text-xs text-gray-500">${new Date(t.date).toLocaleString()}</p></div><p class="${t.amount > 0 ? 'text-green-600' : 'text-red-600'} font-bold">${t.amount > 0 ? '+' : ''}KES ${Math.abs(t.amount).toFixed(2)}</p></div>`).join('');
+            const searchInput = document.getElementById('searchHistory');
+            const filterSelect = document.getElementById('filterType');
+            if (searchInput && filterSelect) { searchInput.oninput = () => filterTransactions(); filterSelect.onchange = () => filterTransactions(); }
+        }
+
+        function filterTransactions() {
+            const searchTerm = document.getElementById('searchHistory').value.toLowerCase();
+            const filterType = document.getElementById('filterType').value;
+            let filtered = [...transactions];
+            if (filterType !== 'all') filtered = filtered.filter(t => t.type === filterType);
+            if (searchTerm) filtered = filtered.filter(t => t.description.toLowerCase().includes(searchTerm) || (t.toFrom && t.toFrom.toLowerCase().includes(searchTerm)));
+            const container = document.getElementById('historyList');
+            if (filtered.length === 0) { container.innerHTML = '<p class="text-gray-500 text-center py-8">No matching transactions</p>'; return; }
+            container.innerHTML = filtered.map(t => `<div class="flex justify-between items-center p-3 bg-gray-50 rounded-xl"><div><p class="font-semibold text-sm">${t.type.toUpperCase()}</p><p class="text-xs text-gray-500">${new Date(t.date).toLocaleString()}</p><p class="text-xs text-gray-400">${t.description}</p></div><p class="${t.amount > 0 ? 'text-green-600' : 'text-red-600'} font-bold">${t.amount > 0 ? '+' : ''}KES ${Math.abs(t.amount).toFixed(2)}</p></div>`).join('');
+        }
+
+        function toggleProfileDropdown() { document.getElementById('profileDropdown').classList.toggle('hidden'); }
+        function showProfileModal() { document.getElementById('profileModal').classList.remove('hidden'); document.getElementById('profileDropdown').classList.add('hidden'); }
+        function closeProfileModal() { document.getElementById('profileModal').classList.add('hidden'); }
+        function showSettingsModal() { document.getElementById('settingsModal').classList.remove('hidden'); document.getElementById('profileDropdown').classList.add('hidden'); }
+        function closeSettingsModal() { document.getElementById('settingsModal').classList.add('hidden'); }
+        function saveSettings() { localStorage.setItem('emailNotifications', document.getElementById('emailNotifications').checked); alert('Settings saved!'); closeSettingsModal(); }
+        function showSecurityModal() { document.getElementById('securityModal').classList.remove('hidden'); document.getElementById('profileDropdown').classList.add('hidden'); }
+        function closeSecurityModal() { document.getElementById('securityModal').classList.add('hidden'); }
+        function updatePassword() { alert('Password updated successfully!'); closeSecurityModal(); }
+
+        function showTab(tab) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById(`${tab}Tab`).classList.remove('hidden');
+            const btns = document.querySelectorAll('.tab-btn');
+            for (let btn of btns) {
+                if (btn.innerText.toLowerCase().includes(tab)) {
+                    btn.classList.add('active');
+                    break;
+                }
+            }
+        }
+
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+            localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
+            document.getElementById('darkModeIcon').textContent = document.body.classList.contains('dark-mode') ? '☀️' : '🌙';
+            if (document.getElementById('darkModeToggle')) document.getElementById('darkModeToggle').checked = document.body.classList.contains('dark-mode');
+        }
+
+        function logout() { localStorage.clear(); window.location.href = 'login.html'; }
+
+        document.querySelectorAll('.booking-slot').forEach(slot => { if (!slot.classList.contains('booked')) slot.addEventListener('click', function () { selectGymSlot(this); }); });
+        document.addEventListener('click', (e) => { if (!e.target.closest('#profileDropdown') && !e.target.closest('[onclick="toggleProfileDropdown()"]')) document.getElementById('profileDropdown')?.classList.add('hidden'); });
+
+        if (localStorage.getItem('darkMode') === 'true') { document.body.classList.add('dark-mode'); document.getElementById('darkModeIcon').textContent = '☀️'; }
+
+        init();
+    </script>
+</body>
+
+</html>
